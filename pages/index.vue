@@ -1,87 +1,91 @@
 <script setup lang="ts">
 import Command from '~/components/ui/command/Command.vue';
 import { cn } from '~/lib/utils';
-import type { TestRequestQuery } from '~/server/api/test';
+import { CheckIcon, ChevronDownIcon } from '@radix-icons/vue'
+import type { CachedUsersResponse } from '~/server/api/cached-users';
 
-
-const counter = ref(0)
-
-const { data } = useFetch('/api/cached-users')
-
-
-const hehe = computed(() => {
-  const r = data.value
-  if (r === undefined)
-    return []
-
-  return r?.filter(v => v.username.startsWith("An"))
+definePageMeta({
+  layout: 'default'
 })
 
-function buttonClicked(e: MouseEvent) {
-  console.log(e)
-  counter.value++
-}
-
-//onMounted(() => {
-//  $fetch('https://api.bar-rts.com/replays?page=1&limit=24&hasBots=false&endedNormally=true').then(v => console.log(v))
-//})
-
-const frameworks = [
-  { value: 'next.js', label: 'Next.js' },
-  { value: 'sveltekit', label: 'SvelteKit' },
-  { value: 'nuxt', label: 'Nuxt' },
-  { value: 'remix', label: 'Remix' },
-  { value: 'astro', label: 'Astro' },
-]
+const { data: allCachedUsers, execute: executeAllCachedUsers } = useLazyFetch('/api/cached-users', {
+  immediate: false,
+})
 
 const open = ref(false)
-const value = ref('')
+const searchedUser = ref('')
+const value = ref<CachedUsersResponse[number]>()
 
 
+const { data: users, execute: usersExecute } = useAsyncData(async () => {
+  const r = allCachedUsers.value
+  if (r === undefined || r === null)
+    return []
+
+  const searchedValue = searchedUser.value
+  if (searchedValue.length < 3) return []
+  const collator = Intl.Collator(undefined, { sensitivity: 'accent' })
+  return sortedFilter(r, (v) => {
+    if (v.username.toLocaleLowerCase().startsWith(searchedValue.toLocaleLowerCase())) return 0
+    return collator.compare(v.username, searchedValue)
+  }, (v) => {
+    if (v.username.toLocaleLowerCase().startsWith(searchedValue.toLocaleLowerCase())) return 0
+    return collator.compare(v.username, searchedValue)
+  })
+}, {
+  immediate: false,
+  watch: [allCachedUsers, searchedUser]
+})
+
+const trimmedUsers = computed(() => {
+  return (users.value ?? []).slice(0, 20)
+})
+
+onMounted(() => {
+  executeAllCachedUsers()
+  usersExecute()
+})
 </script>
+
 <template>
-  <div class="flex flex-col">
-    <div v-for="item in hehe">
-
-      {{ item.username }}
-
+  <article>
+    <div>
+      Hello there
     </div>
-    <!--<span class="bg-card text-card-foreground">Hello there {{ counter }} {{ data?.hello }} </span> -->
-    <Button variant="default" @click="buttonClicked">Click me</Button>
-  </div>
-  <Popover v-model:open="open">
-    <PopoverTrigger as-child>
-      <Button variant="outline" role="combobox" :aria-expanded="open"
-        class="w-[200px] justify-between">
-        {{ value
-          ? frameworks.find((framework) => framework.value ===
-            value)?.label
-          : "Select framework..." }}
-        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-      </Button>
-    </PopoverTrigger>
-    <PopoverContent class="w-[200px] p-0">
-      <Command>
-        <CommandInput class="h-9" placeholder="Search framework..." />
-        <CommandEmpty>No framework found.</CommandEmpty>
-        <CommandList>
-          <CommandGroup>
-            <CommandItem v-for="framework in frameworks"
-              :key="framework.value" :value="framework.value" @select="(ev) => {
-                if (typeof ev.detail.value === 'string') {
-                  value = ev.detail.value
-                }
-                open = false
-              }">
-              {{ framework.label }}
-              <Check :class="cn(
-                'ml-auto h-4 w-4',
-                value === framework.value ? 'opacity-100' : 'opacity-0',
-              )" />
-            </CommandItem>
-          </CommandGroup>
-        </CommandList>
-      </Command>
-    </PopoverContent>
-  </Popover>
+    <Popover v-model:open="open">
+      <PopoverTrigger as-child>
+        <Button variant="outline" role="combobox" :aria-expanded="open"
+          class="w-[200px] justify-between">
+          {{ value?.username ??
+            "Select user..." }}
+          <ChevronDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent class="w-[200px] p-0">
+        <Command :search-term="searchedUser"
+          @update:search-term="(e) => searchedUser = e">
+          <CommandInput class="h-9" placeholder="Search framework..." />
+          <CommandEmpty>No framework found.</CommandEmpty>
+          <CommandList>
+            <CommandGroup>
+              <CommandItem v-for="user in trimmedUsers"
+                :key="user.username" :value="user.username" @select="(ev) => {
+                  //if (typeof ev.detail.value === 'string') {
+                  //  value = ev.detail.value
+                  //}
+                  value = user
+                  open = false
+                }">
+                {{ user.username }}
+                <CheckIcon :class="cn(
+                  'ml-auto h-4 w-4',
+                  value?.username === user.username ? 'opacity-100' : 'opacity-0',
+                )" />
+              </CommandItem>
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  </article>
 </template>

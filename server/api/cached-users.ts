@@ -1,18 +1,44 @@
 import { z } from "zod"
+import { getCachedUsers } from "./bar-cached-users"
 
 
 const result = z.array(
   z.object({
-    id: z.number(),
+    id: z.number().array(),
     username: z.string(),
     countryCode: z.string().nullable()
   })
 )
 
-export default defineCachedEventHandler<any, Promise<z.infer<typeof result>>>(async (event) => {
-  const response = result.parse(await $fetch('https://api.bar-rts.com/cached-users'))
-  response.sort((a, b) => a.username.localeCompare(b.username))
-  return response
+type Response = z.infer<typeof result>
+
+
+
+export default defineCachedEventHandler<any, Promise<Response>>(async (event) => {
+  const response = await getCachedUsers()
+  const groupedUpUsers: Response = [{
+    username: response[0].username,
+    id: [response[0].id],
+    countryCode: response[0].countryCode,
+  }]
+  for (let i = 1; i < response.length; i++) {
+    const next = response[i]
+    const lastValue = groupedUpUsers[groupedUpUsers.length - 1]
+    if (lastValue.username === next.username) {
+      lastValue.id.push(next.id)
+    }
+    else {
+      groupedUpUsers.push({
+        username: next.username,
+        id: [next.id],
+        countryCode: next.countryCode,
+      })
+    }
+  }
+  return groupedUpUsers
 }, {
-  maxAge: 60 * 60
-})
+   maxAge: 60 * 60
+  }
+)
+
+export type { Response as CachedUsersResponse }
