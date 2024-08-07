@@ -1,5 +1,5 @@
 import {readdirSync} from 'node:fs'
 
 export default defineEventHandler(() => {
-  return readdirSync('../', {recursive: true})
+  return readdirSync('/chunks/raw', {recursive: true})
 })
