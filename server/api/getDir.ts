@@ -1,5 +1,5 @@
 import {readdirSync} from 'node:fs'
 
 export default defineEventHandler(() => {
-  return readdirSync('./chunks/raw/drizzle')
+  return readdirSync('./chunks/raw')
 })
