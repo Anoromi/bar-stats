@@ -1,5 +1,5 @@
 import { z } from "zod"
-import { getCachedUsers } from "./bar-cached-users"
+import { getCachedUsers } from "../utils/api-calls/bar-cached-users"
 
 
 const result = z.array(

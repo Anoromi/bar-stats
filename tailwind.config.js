@@ -16,14 +16,15 @@ module.exports = {
     },
     extend: {
       colors: {
-        border: "rgba(var(--border), <alpha-value>)",
-        input: "rgba(var(--input), <alpha-value>)",
+        border: "rgba(var(--foreground), <alpha-value>)",
+        input: "rgba(var(--foreground), <alpha-value>)",
         ring: "rgba(var(--ring), <alpha-value>)",
         background: "rgba(var(--background), <alpha-value>)",
         foreground: "rgba(var(--foreground), <alpha-value>)",
+        'foreground-variant': "rgba(var(--foreground-variant), <alpha-value>)",
         primary: {
           DEFAULT: "rgba(var(--primary), <alpha-value>)",
-          foreground: "rgba(var(--primary), <alpha-value>)",
+          foreground: "rgba(var(--primary-foreground), <alpha-value>)",
         },
         secondary: {
           DEFAULT: "rgba(var(--secondary), <alpha-value>)",

@@ -1,3 +1,4 @@
+import { useNitro } from 'nuxt/kit'
 import * as z from 'zod'
 
 
@@ -16,6 +17,8 @@ export default defineEventHandler<{
   async (event) => {
   let j = requestQuery.parse(getQuery(event))
 
+
+ 
 
   return {
     hello: 'hello ' + (j.user ?? 'hehe')
