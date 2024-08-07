@@ -22,7 +22,7 @@ export default defineNuxtConfig({
     },
     serverAssets: [
       {
-        baseName: 'drizzle',
+        baseName: 'drizzle2',
         dir: './drizzle'
       }
     ]
