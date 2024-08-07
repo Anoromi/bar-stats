@@ -19,8 +19,16 @@ export default defineNuxtConfig({
           }
         ]
       }
-    }
+    },
+    serverAssets: [
+      {
+        baseName: 'drizzle',
+        dir: './drizzle'
+      }
+    ]
   },
+
+
 
 
   runtimeConfig: {
