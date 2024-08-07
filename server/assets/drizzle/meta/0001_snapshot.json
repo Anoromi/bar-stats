@@ -1,0 +1,284 @@
+{
+  "version": "6",
+  "dialect": "sqlite",
+  "id": "46b09a60-bfa0-4f07-9656-fef8ad1ef58d",
+  "prevId": "db809231-38bb-4a03-ba84-02745190b194",
+  "tables": {
+    "battle": {
+      "name": "battle",
+      "columns": {
+        "id": {
+          "name": "id",
+          "type": "text",
+          "primaryKey": true,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "filename": {
+          "name": "filename",
+          "type": "text(200)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "engineVersion": {
+          "name": "engineVersion",
+          "type": "text(100)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "gameVersion": {
+          "name": "gameVersion",
+          "type": "text(100)",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "startTime": {
+          "name": "startTime",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "durationMs": {
+          "name": "durationMs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "fullDurationMs": {
+          "name": "fullDurationMs",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "winning-team": {
+          "name": "winning-team",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "has-bots": {
+          "name": "has-bots",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "ended-normally": {
+          "name": "ended-normally",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {},
+      "compositePrimaryKeys": {},
+      "uniqueConstraints": {}
+    },
+    "battle-team": {
+      "name": "battle-team",
+      "columns": {
+        "battle-id": {
+          "name": "battle-id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "team-number": {
+          "name": "team-number",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "battle-team_battle-id_battle_id_fk": {
+          "name": "battle-team_battle-id_battle_id_fk",
+          "tableFrom": "battle-team",
+          "tableTo": "battle",
+          "columnsFrom": [
+            "battle-id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "battleId-teamId-key": {
+          "columns": [
+            "battle-id",
+            "team-number"
+          ],
+          "name": "battleId-teamId-key"
+        }
+      },
+      "uniqueConstraints": {}
+    },
+    "user-to-battle": {
+      "name": "user-to-battle",
+      "columns": {
+        "user-username": {
+          "name": "user-username",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "user-id": {
+          "name": "user-id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "battle-team-battle-id": {
+          "name": "battle-team-battle-id",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "battle-team-number": {
+          "name": "battle-team-number",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "skill": {
+          "name": "skill",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "skill-uncertainty": {
+          "name": "skill-uncertainty",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "is-spectator": {
+          "name": "is-spectator",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        },
+        "player-id": {
+          "name": "player-id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "team-id": {
+          "name": "team-id",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "faction": {
+          "name": "faction",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "start-pos-x": {
+          "name": "start-pos-x",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "start-pos-y": {
+          "name": "start-pos-y",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "start-pos-z": {
+          "name": "start-pos-z",
+          "type": "real",
+          "primaryKey": false,
+          "notNull": false,
+          "autoincrement": false
+        },
+        "rank": {
+          "name": "rank",
+          "type": "integer",
+          "primaryKey": false,
+          "notNull": true,
+          "autoincrement": false
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "user-to-battle_battle-team-battle-id_battle-team_battle-id_fk": {
+          "name": "user-to-battle_battle-team-battle-id_battle-team_battle-id_fk",
+          "tableFrom": "user-to-battle",
+          "tableTo": "battle-team",
+          "columnsFrom": [
+            "battle-team-battle-id"
+          ],
+          "columnsTo": [
+            "battle-id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        },
+        "user-to-battle_battle-team-number_battle-team_team-number_fk": {
+          "name": "user-to-battle_battle-team-number_battle-team_team-number_fk",
+          "tableFrom": "user-to-battle",
+          "tableTo": "battle-team",
+          "columnsFrom": [
+            "battle-team-number"
+          ],
+          "columnsTo": [
+            "team-number"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "username-battle-key": {
+          "columns": [
+            "battle-team-battle-id",
+            "battle-team-number",
+            "user-id"
+          ],
+          "name": "username-battle-key"
+        }
+      },
+      "uniqueConstraints": {}
+    }
+  },
+  "enums": {},
+  "_meta": {
+    "schemas": {},
+    "tables": {},
+    "columns": {}
+  },
+  "internal": {
+    "indexes": {}
+  }
+}
