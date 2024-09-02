@@ -102,9 +102,7 @@
       "indexes": {
         "start-time-index": {
           "name": "start-time-index",
-          "columns": [
-            "start-time"
-          ],
+          "columns": ["start-time"],
           "isUnique": false
         }
       },
@@ -136,22 +134,15 @@
           "name": "battle-team_battle-id_battle_id_fk",
           "tableFrom": "battle-team",
           "tableTo": "battle",
-          "columnsFrom": [
-            "battle-id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["battle-id"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "battleId-teamId-key": {
-          "columns": [
-            "battle-id",
-            "team-number"
-          ],
+          "columns": ["battle-id", "team-number"],
           "name": "battleId-teamId-key"
         }
       },
@@ -206,23 +197,17 @@
       "indexes": {
         "map-name-idx": {
           "name": "map-name-idx",
-          "columns": [
-            "name"
-          ],
+          "columns": ["name"],
           "isUnique": false
         },
         "map-subclass-idx": {
           "name": "map-subclass-idx",
-          "columns": [
-            "subclass-of"
-          ],
+          "columns": ["subclass-of"],
           "isUnique": false
         },
         "map-mapId-idx": {
           "name": "map-mapId-idx",
-          "columns": [
-            "bar-map-id"
-          ],
+          "columns": ["bar-map-id"],
           "isUnique": false
         }
       },
@@ -231,12 +216,8 @@
           "name": "subclass-foreign-key",
           "tableFrom": "map",
           "tableTo": "map",
-          "columnsFrom": [
-            "subclass-of"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["subclass-of"],
+          "columnsTo": ["id"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
@@ -349,17 +330,12 @@
       "indexes": {
         "user-to-battle-battle-team-idx": {
           "name": "user-to-battle-battle-team-idx",
-          "columns": [
-            "battle-team-number",
-            "battle-team-battle-id"
-          ],
+          "columns": ["battle-team-number", "battle-team-battle-id"],
           "isUnique": false
         },
         "user-to-battle-user-id-idx": {
           "name": "user-to-battle-user-id-idx",
-          "columns": [
-            "user-id"
-          ],
+          "columns": ["user-id"],
           "isUnique": false
         }
       },
@@ -368,25 +344,15 @@
           "name": "user-to-battle-battle-team-foreignKey",
           "tableFrom": "user-to-battle",
           "tableTo": "battle-team",
-          "columnsFrom": [
-            "battle-team-battle-id",
-            "battle-team-number"
-          ],
-          "columnsTo": [
-            "battle-id",
-            "team-number"
-          ],
+          "columnsFrom": ["battle-team-battle-id", "battle-team-number"],
+          "columnsTo": ["battle-id", "team-number"],
           "onDelete": "no action",
           "onUpdate": "no action"
         }
       },
       "compositePrimaryKeys": {
         "username-battle-key": {
-          "columns": [
-            "battle-team-battle-id",
-            "battle-team-number",
-            "user-id"
-          ],
+          "columns": ["battle-team-battle-id", "battle-team-number", "user-id"],
           "name": "username-battle-key"
         }
       },

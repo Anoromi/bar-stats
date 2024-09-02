@@ -2,7 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-
 @layer base {
   :root {
     /*--background: 0 0% 100%;
@@ -13,7 +12,6 @@
 
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-
 
     /*--border: 240 5.9% 90%;
     --input: 240 5.9% 90%; */
@@ -41,8 +39,6 @@
     --ring: 240 10% 3.9%;
 
     --radius: 0.5rem;
-
-
 
     --card: var(--surface);
     --card-foreground: var(--foreground);

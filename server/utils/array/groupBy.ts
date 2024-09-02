@@ -7,7 +7,7 @@ export function groupBy<T, G>(
     selectGroupKey: (value: T) => G;
   },
 ) {
-  return groupByMapped(values, {...opts, selectGroupValue: (v) => v})
+  return groupByMapped(values, { ...opts, selectGroupValue: (v) => v });
 }
 
 export function groupByMapped<T, G, V>(

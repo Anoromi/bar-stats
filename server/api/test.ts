@@ -6,8 +6,6 @@ const requestQuery = z.object({
   user: z.string().optional(),
 });
 
-
-
 export type TestRequestQuery = z.infer<typeof requestQuery>;
 
 export default defineEventHandler(async (event) => {

@@ -21,25 +21,29 @@ import {
 //  username: text('user_username').notNull().references(() => users.username)
 //})
 
-export const battleTable = sqliteTable("battle", {
-  id: text("id").primaryKey().notNull(),
-  engineVersion: text("engine-version").notNull(),
-  mapId: integer("map-id").notNull(),
-  gameVersion: text("game-version").notNull(),
-  startTime: integer("start-time", { mode: "timestamp_ms" }).notNull(),
-  durationMs: integer("duration-ms").notNull(),
-  fullDurationMs: integer("full-duration-ms").notNull(),
-  winningTeam: integer("winning-team"),
-  hasBots: integer("has-bots", { mode: "boolean" }).notNull(),
-  endedNormally: integer("ended-normally", { mode: "boolean" }).notNull(),
-  playerCount: integer("player-count").notNull(),
-  battleType: text("battle-type").notNull(),
-  preset: text("preset")
-}, (table) => {
-  return {
-    startTimeIndex: index('start-time-index').on(table.startTime)
-  }
-});
+export const battleTable = sqliteTable(
+  "battle",
+  {
+    id: text("id").primaryKey().notNull(),
+    engineVersion: text("engine-version").notNull(),
+    mapId: integer("map-id").notNull(),
+    gameVersion: text("game-version").notNull(),
+    startTime: integer("start-time", { mode: "timestamp_ms" }).notNull(),
+    durationMs: integer("duration-ms").notNull(),
+    fullDurationMs: integer("full-duration-ms").notNull(),
+    winningTeam: integer("winning-team"),
+    hasBots: integer("has-bots", { mode: "boolean" }).notNull(),
+    endedNormally: integer("ended-normally", { mode: "boolean" }).notNull(),
+    playerCount: integer("player-count").notNull(),
+    battleType: text("battle-type").notNull(),
+    preset: text("preset"),
+  },
+  (table) => {
+    return {
+      startTimeIndex: index("start-time-index").on(table.startTime),
+    };
+  },
+);
 
 export const mapTable = sqliteTable(
   "map",
@@ -49,38 +53,38 @@ export const mapTable = sqliteTable(
     fileName: text("filename"),
     scriptName: text("script-name"),
     name: text("name", {}).notNull(),
-    subclassOfId: integer("subclass-of")
+    subclassOfId: integer("subclass-of"),
   },
   (table) => {
     return {
       name_idx: index("map-name-idx").on(table.name),
       subclass_foreign_key: foreignKey({
-        name: 'subclass-foreign-key',
+        name: "subclass-foreign-key",
         columns: [table.subclassOfId],
-        foreignColumns: [table.id]
+        foreignColumns: [table.id],
       }),
-      subclassIndex: index('map-subclass-idx').on(table.subclassOfId),
-      mapIdIndex: index('map-mapId-idx').on(table.mapId)
+      subclassIndex: index("map-subclass-idx").on(table.subclassOfId),
+      mapIdIndex: index("map-mapId-idx").on(table.mapId),
     };
   },
 );
 
-export const mapRelations = relations(mapTable, ({one, many}) => ({
+export const mapRelations = relations(mapTable, ({ one, many }) => ({
   superclass: one(mapTable, {
     fields: [mapTable.subclassOfId],
-    references: [mapTable.id]
+    references: [mapTable.id],
   }),
   subclass: many(mapTable, {
-    relationName: 'subclass'
-  })
-}))
+    relationName: "subclass",
+  }),
+}));
 
 export const battleTeamTable = sqliteTable(
   "battle-team",
   {
     battleId: text("battle-id")
-    .references(() => battleTable.id)
-    .notNull(),
+      .references(() => battleTable.id)
+      .notNull(),
     teamNumber: integer("team-number").notNull(),
   },
   (table) => {
@@ -89,7 +93,7 @@ export const battleTeamTable = sqliteTable(
         name: "battleId-teamId-key",
         columns: [table.battleId, table.teamNumber],
       }),
-    }
+    };
   },
 );
 
@@ -98,10 +102,8 @@ export const userToBattleTable = sqliteTable(
   {
     username: text("user-username"),
     userId: integer("user-id"),
-    battleTeamBattleId: text("battle-team-battle-id")
-      .notNull(),
-    battleTeamNumber: integer("battle-team-number")
-      .notNull(),
+    battleTeamBattleId: text("battle-team-battle-id").notNull(),
+    battleTeamNumber: integer("battle-team-number").notNull(),
     skill: real("skill"),
     skillUncertainty: real("skill-uncertainty"),
     rank: integer("rank"),
@@ -124,14 +126,17 @@ export const userToBattleTable = sqliteTable(
         ],
       }),
       battleTeamFk: foreignKey({
-        name: 'user-to-battle-battle-team-foreignKey',
+        name: "user-to-battle-battle-team-foreignKey",
         columns: [table.battleTeamBattleId, table.battleTeamNumber],
-        foreignColumns: [battleTeamTable.battleId, battleTeamTable.teamNumber]
+        foreignColumns: [battleTeamTable.battleId, battleTeamTable.teamNumber],
       }),
 
-      battleTeamIndex: index("user-to-battle-battle-team-idx").on(table.battleTeamNumber, table.battleTeamBattleId),
+      battleTeamIndex: index("user-to-battle-battle-team-idx").on(
+        table.battleTeamNumber,
+        table.battleTeamBattleId,
+      ),
 
-      userIdIndex: index("user-to-battle-user-id-idx").on(table.userId)
+      userIdIndex: index("user-to-battle-user-id-idx").on(table.userId),
     };
   },
 );
@@ -149,7 +154,6 @@ export const userToBattleRelations = relations(
   }),
 );
 
-
 export type BattleEntity = typeof battleTable.$inferSelect;
 export type BattleEntityInsert = typeof battleTable.$inferInsert;
 
@@ -157,7 +161,8 @@ export type BattleTeamEntity = typeof battleTeamTable.$inferSelect;
 export type BattleTeamEntityInsert = typeof battleTeamTable.$inferInsert;
 
 export type UserToBattleTeamEntity = typeof userToBattleTable.$inferSelect;
-export type UserToBattleTeamEntityInsert = typeof userToBattleTable.$inferInsert;
+export type UserToBattleTeamEntityInsert =
+  typeof userToBattleTable.$inferInsert;
 
-export type MapEntity = typeof mapTable.$inferSelect
-export type MapEntityInsert = typeof mapTable.$inferInsert
+export type MapEntity = typeof mapTable.$inferSelect;
+export type MapEntityInsert = typeof mapTable.$inferInsert;

@@ -1,41 +1,34 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
-
 export default defineNuxtConfig({
-  compatibilityDate: '2024-04-03',
+  compatibilityDate: "2024-04-03",
   devtools: { enabled: true },
   modules: ["@nuxtjs/tailwindcss", "shadcn-nuxt"],
   shadcn: {
-    prefix: '',
-    componentDir: './components/ui'
+    prefix: "",
+    componentDir: "./components/ui",
   },
   nitro: {
     vercel: {
       config: {
         crons: [
           {
-            path: '/api/update',
-            schedule: '0 0 * * *'
-          }
-        ]
-      }
+            path: "/api/update",
+            schedule: "0 0 * * *",
+          },
+        ],
+      },
     },
     serverAssets: [
       {
-        baseName: 'drizzle2',
-        dir: './drizzle'
+        baseName: "drizzle2",
+        dir: "./drizzle",
       },
     ],
-
   },
 
-  
-
-
-
   runtimeConfig: {
-    DB_AUTH_TOKEN: '',
-    DB_URL: ''
-  }
-
-})
+    DB_AUTH_TOKEN: "",
+    DB_URL: "",
+  },
+});

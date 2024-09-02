@@ -2,7 +2,7 @@ import { createConfigForNuxt } from "@nuxt/eslint-config/flat";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
 import prettierConfig from "eslint-config-prettier";
 
-console.log(prettierConfig)
+console.log(prettierConfig);
 export default createConfigForNuxt({}).append(
   ...[
     {

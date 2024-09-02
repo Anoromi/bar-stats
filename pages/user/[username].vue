@@ -1,8 +1,7 @@
 <script setup lang="ts">
-const username = useRoute().params.username
-
+const username = useRoute().params.username;
 </script>
 
 <template>
-  {{username}}
+  {{ username }}
 </template>

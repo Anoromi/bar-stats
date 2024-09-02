@@ -1,5 +1,9 @@
 import { and, eq, inArray, max, SQLWrapper } from "drizzle-orm";
-import { BattleEntity, battleTable, BattleEntityInsert } from "../database/schema";
+import {
+  BattleEntity,
+  battleTable,
+  BattleEntityInsert,
+} from "../database/schema";
 import { logAnalyze } from "../database/explainAnalyze";
 import { MapService } from "#imports";
 import consola from "consola";
@@ -17,25 +21,22 @@ export const lastBattleQuery = () =>
     .limit(1);
 
 type BattleDto = {
-  id: string,
-  engineVErsion: string,
-  mapId: number,
-  gameVersion: string,
-  startTime: number,
-  durationMs: number,
-  fullDurationMs: number,
-  winningTeam: number,
-  hasBots: boolean,
-  endedNormally: boolean,
-  playerCount: number,
-  battleType: string
-}
+  id: string;
+  engineVErsion: string;
+  mapId: number;
+  gameVersion: string;
+  startTime: number;
+  durationMs: number;
+  fullDurationMs: number;
+  winningTeam: number;
+  hasBots: boolean;
+  endedNormally: boolean;
+  playerCount: number;
+  battleType: string;
+};
 
 export class BattleService {
-
-  constructor(private mapService: MapService = useMapService()) {
-
-  }
+  constructor(private mapService: MapService = useMapService()) {}
 
   async getLastBattle(): Promise<BattleEntity | null> {
     const result = await db
@@ -61,17 +62,20 @@ export class BattleService {
     return result[0];
   }
 
-  async getBattles(userIds: number[] | null, battleMap: string | null, limit : number) {
+  async getBattles(
+    userIds: number[] | null,
+    battleMap: string | null,
+    limit: number,
+  ) {
     const conditions: SQLWrapper[] = [];
-    
 
     if (userIds !== null) {
       conditions.push(inArray(userToBattleTable.userId, userIds));
     }
 
     if (battleMap !== null) {
-      consola.log('fine', battleMap)
-      const searchedMaps = await this.mapService.getMapByName(battleMap)
+      consola.log("fine", battleMap);
+      const searchedMaps = await this.mapService.getMapByName(battleMap);
       if (searchedMaps === null) return [];
 
       const possibleMapIds =
@@ -89,23 +93,22 @@ export class BattleService {
       //conditions.push()
       //conditions.push(e)
     }
-    consola.log('fine 2', conditions)
+    consola.log("fine 2", conditions);
 
-    const battleIds = await logAnalyze(db
-      .select()
-      .from(userToBattleTable)
-      .innerJoin(
-        battleTable,
-        eq(userToBattleTable.battleTeamBattleId, battleTable.id),
-      )
-      .where(and(...conditions)).limit(limit));
-
+    const battleIds = await logAnalyze(
+      db
+        .select()
+        .from(userToBattleTable)
+        .innerJoin(
+          battleTable,
+          eq(userToBattleTable.battleTeamBattleId, battleTable.id),
+        )
+        .where(and(...conditions))
+        .limit(limit),
+    );
   }
 
-
-  insertBattles() {
-
-  }
+  insertBattles() {}
 }
 
 export function useBattleService() {
