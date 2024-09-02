@@ -8,18 +8,7 @@ import {
   index,
   foreignKey,
 } from "drizzle-orm/sqlite-core";
-
-//export const users = sqliteTable('users', {
-//  username: text('username', { length: 50 }).notNull().primaryKey(),
-//  countryCode: text('countryCode', {
-//    length: 10
-//  })
-//})
-//
-//export const userIds = sqliteTable('user-ids', {
-//  id: integer('id').primaryKey().notNull(),
-//  username: text('user_username').notNull().references(() => users.username)
-//})
+import { insensitiveText } from "./insensitiveText";
 
 export const battleTable = sqliteTable(
   "battle",
@@ -52,7 +41,7 @@ export const mapTable = sqliteTable(
     mapId: integer("bar-map-id"),
     fileName: text("filename"),
     scriptName: text("script-name"),
-    name: text("name", {}).notNull(),
+    name: insensitiveText("name", {}).notNull(),
     subclassOfId: integer("subclass-of"),
   },
   (table) => {
