@@ -1,23 +1,25 @@
 import { z } from "zod"
 
 const playerSchema = z.object({
-  id: z.number().int(),
-  playerId: z.number().int(),
-  name: z.string(),
-  countryCode: z.string().nullable(),
-  rank: z.number().int(),
-  skillUncertainty: z.number().nullable(),
+  id: z.number().int().nullish(),
+  playerId: z.number().int().nullish(),
+  name: z.string().nullish(),
+  countryCode: z.string().nullish(),
+  rank: z.number().int().nullish(),
+  skillUncertainty: z.number().nullish(),
   skill: z.string()
     .refine((s) => s.startsWith('[') && s.endsWith(']'), {
       message: "Skill starts or ends with a non [ ] characters"
     })
-    .transform((s) => parseInt(s.replaceAll('[', '').replaceAll(']', ''))).nullable(),
-  userId: z.number().int()
+    .transform((s) => parseInt(s.replaceAll('[', '').replaceAll(']', ''))).nullish(),
+  userId: z.number().int().nullish()
 })
 
 
 const barReplaySchema = z.object({
   id: z.string(),
+  gameVersion: z.string(),
+  engineVersion: z.string(),
   startTime: z.string().datetime(),
   durationMs: z.number().int(),
   fullDurationMs: z.number().int(),
@@ -35,6 +37,7 @@ const barReplaySchema = z.object({
       message: 'Value shoud be either 0 or 1'
     })
   }),
+  preset: z.string().nullish(),
   awards: z.object({
     econDestroyed: z.array(z.object({
       teamId: z.number().int(),
@@ -74,6 +77,7 @@ const barReplaySchema = z.object({
       winningTeam: z.boolean(),
       Players: z.array(
         playerSchema.merge(z.object({
+          faction: z.string(),
           teamId: z.number().int(),
           startPos: z.object({
             x: z.number(),
@@ -90,12 +94,13 @@ const barReplaySchema = z.object({
 })
 
 
+export type BarReplay = z.infer<typeof barReplaySchema>
+
 
 export async function getBarReplay(id: string) {
   const result = await $fetch(`https://api.bar-rts.com/replays/${id}`, {
     retry: 4,
     retryDelay: 1000
   })
-  //console.log(id)
   return barReplaySchema.parse(result)
 }
