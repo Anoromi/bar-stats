@@ -14,7 +14,7 @@ type Response = z.infer<typeof result>
 
 
 
-export default defineCachedEventHandler<any, Promise<Response>>(async (event) => {
+export default defineCachedEventHandler<never, Promise<Response>>(async (event) => {
   const response = await getCachedUsers()
   const groupedUpUsers: Response = [{
     username: response[0].username,
@@ -35,10 +35,10 @@ export default defineCachedEventHandler<any, Promise<Response>>(async (event) =>
       })
     }
   }
-  return groupedUpUsers
+  return result.parse(groupedUpUsers)
 }, {
-   maxAge: 60 * 60
-  }
+  maxAge: 60 * 60
+}
 )
 
 export type { Response as CachedUsersResponse }

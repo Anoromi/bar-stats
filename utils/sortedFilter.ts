@@ -7,8 +7,8 @@ export function sortedFilter<T>(data: T[], lowerBoundCompare: (value: T) => numb
   {
     let min = 0, max = data.length
     while (min < max) {
-      let med = Math.floor((min + max) / 2)
-      let value = data[med]
+      const med = Math.floor((min + max) / 2)
+      const value = data[med]
       console.log(value, med)
       const comparisonResult = lowerBoundCompare(value)
       if (comparisonResult < 0) {
@@ -29,8 +29,8 @@ export function sortedFilter<T>(data: T[], lowerBoundCompare: (value: T) => numb
   {
     let min = 0, max = data.length
     while (min < max) {
-      let med = Math.floor((min + max) / 2)
-      let value = data[med]
+      const med = Math.floor((min + max) / 2)
+      const value = data[med]
       const comparisonResult = lowerBoundCompare(value)
       console.log(value, med)
       if (comparisonResult <= 0) {
