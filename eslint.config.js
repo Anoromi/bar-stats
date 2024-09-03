@@ -2,7 +2,6 @@ import { createConfigForNuxt } from "@nuxt/eslint-config/flat";
 import pluginUnusedImports from "eslint-plugin-unused-imports";
 import prettierConfig from "eslint-config-prettier";
 
-console.log(prettierConfig);
 export default createConfigForNuxt({}).append(
   ...[
     {
@@ -23,6 +22,7 @@ export default createConfigForNuxt({}).append(
             argsIgnorePattern: "^_",
           },
         ],
+        "vue/require-default-prop": "off"
       },
     },
     prettierConfig,
