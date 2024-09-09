@@ -1,21 +1,27 @@
 import { z } from "zod";
+import type { MapDto } from "../utils/dto/dto";
+import consola from "consola";
 
 const querySchema = z.object({
   name: z.string(),
 });
 
-export default defineCachedEventHandler<
+export type GetMapSuggestionQuery = z.infer<typeof querySchema>
+
+export default defineEventHandler<
   {
-    query: z.infer<typeof querySchema>;
+    query: GetMapSuggestionQuery;
   },
-  MapEntity[]
+  Promise<MapDto[]>
 >(
   async (event) => {
-    const query = querySchema.parse(getQuery(event));
+    consola.log("let's start")
+    const query = await getValidatedQuery(event, querySchema.parse);
     const mapService = useMapService();
+    consola.log('hehe', query)
     return await mapService.getMapSuggestions(query.name);
   },
-  {
-    maxAge: 1000 * 60 * 60,
-  },
+  //{
+  //  //maxAge: 1000 * 60 * 60,
+  //},
 );
