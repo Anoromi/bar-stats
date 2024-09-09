@@ -8,7 +8,7 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "postbuild": "drizzle-kit migrate"
+    "postbuild": "drizzle-kit generate && drizzle-kit push --force"
   },
   "dependencies": {
     "@libsql/client": "^0.5.6",
