@@ -1,5 +1,4 @@
 import { type VariantProps, cva } from "class-variance-authority";
-import clsx from "clsx";
 
 export { default as Button } from "./Button.vue";
 
@@ -13,10 +12,10 @@ export const buttonVariants = cva(
         destructive:
           "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
         outline:
-          "border border-input bg-background shadow-sm hover:bg-accent hover:text-accent-foreground",
+          "border border-input bg-background shadow-sm hover:bg-primary hover:text-primary-foreground",
         secondary:
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-accent hover:text-accent-foreground",
+        ghost: "hover:bg-primary hover:text-primary-foreground",
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {

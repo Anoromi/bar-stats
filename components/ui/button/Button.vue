@@ -1,16 +1,12 @@
 <script setup lang="ts">
-import {
-  type ButtonHTMLAttributes,
-  type EmitsOptions,
-  type Events,
-  type HTMLAttributes,
+import type {
+  HTMLAttributes,
 } from "vue";
 
 import {
   Primitive,
   useForwardPropsEmits,
   type PrimitiveProps,
-  type ToggleEmits,
 } from "radix-vue";
 import { type ButtonVariants, buttonVariants } from ".";
 
