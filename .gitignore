@@ -6,7 +6,9 @@
 .cache
 dist
 
+
 # Local db
+drizzle
 local.db
 local.db*
 
