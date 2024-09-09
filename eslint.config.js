@@ -22,7 +22,8 @@ export default createConfigForNuxt({}).append(
             argsIgnorePattern: "^_",
           },
         ],
-        "vue/require-default-prop": "off"
+        "vue/require-default-prop": "off",
+        "vue/first-attribute-linebreak": "off"
       },
     },
     prettierConfig,
