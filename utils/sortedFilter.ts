@@ -1,4 +1,3 @@
-import { wait } from "./wait";
 
 export function sortedFilter<T>(
   data: T[],

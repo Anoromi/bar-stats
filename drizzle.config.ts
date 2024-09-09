@@ -1,5 +1,5 @@
 import { defineConfig } from "drizzle-kit";
-import { env, isDevelopment, isProduction } from "std-env";
+import { env } from "std-env";
 
 console.log(env.NUXT_DB_URL, env.NUXT_DB_AUTH_TOKEN);
 export default defineConfig({

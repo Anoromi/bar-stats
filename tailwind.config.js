@@ -12,9 +12,13 @@ module.exports = {
       padding: "2rem",
       screens: {
         "2xl": "1400px",
-      },
+      }
     },
     extend: {
+      fontFamily: {
+        sans: 'Noto Sans'
+
+      },
       colors: {
         border: "rgba(var(--foreground), <alpha-value>)",
         input: "rgba(var(--foreground), <alpha-value>)",
