@@ -1,11 +1,9 @@
 import consola from "consola";
-import { SQL, sql } from "drizzle-orm";
-import { TypedQueryBuilder } from "drizzle-orm/query-builders/query-builder";
-import {
-  SQLiteSelectBase,
-  SQLiteSelectBuilder,
-  SQLiteSelectQueryBuilderBase,
-} from "drizzle-orm/sqlite-core";
+import type { SQL} from "drizzle-orm";
+import { sql } from "drizzle-orm";
+import type { TypedQueryBuilder } from "drizzle-orm/query-builders/query-builder";
+
+
 
 export async function explainAnalyze(query: SQL) {
   return await db.run(sql`EXPLAIN QUERY PLAN ${query}`);

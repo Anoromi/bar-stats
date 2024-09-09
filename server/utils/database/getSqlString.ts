@@ -1,4 +1,4 @@
-import { SQL } from "drizzle-orm";
+import type { SQL } from "drizzle-orm";
 import { SQLiteAsyncDialect } from "drizzle-orm/sqlite-core";
 
 export function getSqlString(sql: SQL) {
