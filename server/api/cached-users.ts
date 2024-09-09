@@ -12,7 +12,7 @@ const result = z.array(
 type Response = z.infer<typeof result>;
 
 export default defineCachedEventHandler<never, Promise<Response>>(
-  async (event) => {
+  async () => {
     const response = await getCachedUsers();
     const groupedUpUsers: Response = [
       {
