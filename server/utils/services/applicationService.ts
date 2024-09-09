@@ -1,12 +1,12 @@
 import { inArray } from "drizzle-orm";
-import {
+import type {
   BattleEntityInsert,
   BattleTeamEntityInsert,
   MapEntityInsert as MapEntityInsert,
   UserToBattleTeamEntityInsert,
 } from "../database/schema";
 import { consola } from "consola";
-import { BarReplay } from "../api-calls/bar-replay";
+import type { BarReplay } from "../api-calls/bar-replay";
 
 export const SPECTATOR_TEAM_ID = -1;
 
@@ -19,7 +19,7 @@ class ApplicationService {
     let boundary: Date;
     if (lastBattle === null) {
       const now = new Date();
-      boundary = new Date(now.getTime() - 1000 * 60 * 60 * 5);
+      boundary = new Date(now.getTime() - 1000 * 60 * 60 * 24);
       //boundary = new Date(
       //  now.getUTCFullYear(),
       //  now.getUTCMonth(),
@@ -35,7 +35,7 @@ class ApplicationService {
         .map((v) => getBarReplay(v));
       page++;
 
-      //consola.log('page', page)
+      consola.log("page", page);
       let replays = await Promise.all(requests);
 
       replays = replays.filter(
@@ -49,72 +49,7 @@ class ApplicationService {
 
       //consola.log('min', min(replays, (a, b) => new Date(a.startTime).getTime() - new  Date(b.startTime).getTime()))
 
-      const mapService = useMapService();
-      const allMaps = new Map(replays.map((replay) => [replay.Map.id, replay]));
-      const existingMaps = new Map(
-        (
-          await mapService.getMapsByMapId(
-            replays.map((replay) => replay.Map.id),
-          )
-        ).map((v) => [v.key.id, v]),
-      );
-
-      const newMaps = new Map<number, BarReplay>();
-      for (const [mapId, replay] of allMaps) {
-        if (!existingMaps.has(mapId)) {
-          newMaps.set(mapId, replay);
-        }
-      }
-
-      const universalMaps = [...newMaps.values()].map(
-        (v) =>
-          ({
-            //mapId: v.Map.id,
-            name: getUniversalMapName(v.Map.scriptName),
-
-            //name: v.Map
-          }) satisfies MapEntityInsert,
-      );
-
-      //consola.log("insert universal maps", universalMaps);
-      if (universalMaps.length > 0)
-        await db.insert(mapTable).values(universalMaps).onConflictDoNothing();
-
-      const createdUniversalMaps = await db
-        .select()
-        .from(mapTable)
-        .where(
-          inArray(
-            mapTable.name,
-            universalMaps.map((v) => v.name),
-          ),
-        );
-
-      // insert new universal maps
-
-      const createdUniversalMapsMap = new Map(
-        createdUniversalMaps.map((v) => [v.name, v]),
-      );
-
-      const newMapsInsert = [...newMaps.values()].map(
-        (replay) =>
-          ({
-            mapId: replay.Map.id,
-            fileName: replay.Map.fileName ?? null,
-            scriptName: replay.Map.scriptName ?? null,
-            name: replay.Map.scriptName,
-            subclassOfId: createdUniversalMapsMap.get(
-              getUniversalMapName(replay.Map.scriptName),
-            )!.id,
-          }) satisfies MapEntityInsert,
-      );
-
-      // insert new maps + connect them to universalMaps
-      //
-
-      //consola.log("insert new maps", newMapsInsert);
-      if (newMapsInsert.length > 0)
-        await db.insert(mapTable).values(newMapsInsert);
+      await this.addMaps(replays);
 
       // add battles
 
@@ -218,6 +153,98 @@ class ApplicationService {
           .insert(userToBattleTable)
           .values(usersToTeams)
           .onConflictDoNothing();
+    }
+  }
+
+  private async addMaps(replays: BarReplay[]) {
+    const mapService = useMapService();
+
+    const allReplayMaps = new Map(
+      replays.map((replay) => [replay.Map.id, replay]),
+    );
+    const replayMapsInDb = new Map(
+      (
+        await mapService.getMapsByMapId(replays.map((replay) => replay.Map.id))
+      ).map((v) => [v.mapId, v]),
+    );
+
+    //consola.log('mapsInDb', [...replayMapsInDb]);
+    const newMaps = new Map<number, BarReplay>();
+    for (const [mapId, replay] of allReplayMaps) {
+      if (!replayMapsInDb.has(mapId)) {
+        newMaps.set(mapId, replay);
+      }
+    }
+
+    const neededUniversalMaps = [...newMaps.values()].map(
+      (v) =>
+        ({
+          name: getUniversalMapName(v.Map.scriptName),
+        }) satisfies MapEntityInsert,
+    );
+
+    const universalMapsInDb = await db
+      .select({ name: mapTable.name })
+      .from(mapTable)
+      .where(
+        inArray(
+          mapTable.name,
+          neededUniversalMaps.map((v) => v.name),
+        ),
+      );
+
+    //consola.log("insert universal maps", universalMaps);
+    const insertedUniversalMaps = neededUniversalMaps.filter((v) =>
+      universalMapsInDb.every((x) => v.name != x.name),
+    );
+    if (insertedUniversalMaps.length > 0)
+      await db.insert(mapTable).values(insertedUniversalMaps);
+
+    const dbUniversalMaps = await db
+      .select()
+      .from(mapTable)
+      .where(
+        inArray(
+          mapTable.name,
+          neededUniversalMaps.map((v) => v.name),
+        ),
+      );
+
+    consola.log(
+      "newMaps",
+      [...newMaps].map((v) => v[1].Map),
+    );
+    //consola.log("newUniversalMaps", dbUniversalMaps);
+    // insert new universal maps
+
+    const createdUniversalMapsMap = new Map(
+      dbUniversalMaps.map((v) => [v.name, v]),
+    );
+
+    const newMapsInsert = [...newMaps.values()].map((replay) => {
+      //consola.log(
+      //  getUniversalMapName(replay.Map.scriptName),
+      //  createdUniversalMapsMap.get(getUniversalMapName(replay.Map.scriptName)),
+      //);
+      return {
+        mapId: replay.Map.id,
+        fileName: replay.Map.fileName ?? null,
+        scriptName: replay.Map.scriptName ?? null,
+        name: replay.Map.scriptName,
+        subclassOfId: createdUniversalMapsMap.get(
+          getUniversalMapName(replay.Map.scriptName),
+        )!.id,
+      } satisfies MapEntityInsert;
+    });
+
+    // insert new maps + connect them to universalMaps
+    //
+
+    //consola.log("insert new maps", newMapsInsert);
+    consola.log("new maps");
+    if (newMapsInsert.length > 0) {
+      await db.insert(mapTable).values(newMapsInsert);
+      //consola.log("inserting", newMapsInsert);
     }
   }
 
