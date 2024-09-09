@@ -3,12 +3,7 @@
 export default defineNuxtConfig({
   compatibilityDate: "2024-04-03",
   devtools: { enabled: true },
-  modules: [
-    "@nuxtjs/tailwindcss",
-    "shadcn-nuxt",
-    "@nuxt/fonts",
-    "@nuxthub/core",
-  ],
+  modules: ["@nuxtjs/tailwindcss", "shadcn-nuxt", "@nuxt/fonts"],
   shadcn: {
     prefix: "",
     componentDir: "./components/ui",
