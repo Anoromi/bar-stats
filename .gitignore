@@ -8,7 +8,7 @@ dist
 
 
 # Local db
-drizzle
+drizzle/
 local.db
 local.db*
 
