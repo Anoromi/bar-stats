@@ -29,7 +29,17 @@ export const battleTable = sqliteTable(
   },
   (table) => {
     return {
-      startTimeIndex: index("start-time-index").on(table.startTime),
+      startTimeIndexWithMapId: index("start-time-with-map-id-index").on(
+        table.endedNormally,
+        table.hasBots,
+        table.mapId,
+        table.startTime,
+      ),
+      startTimeIndex: index("start-time-index").on(
+        table.endedNormally,
+        table.hasBots,
+        table.startTime,
+      ),
     };
   },
 );
@@ -38,7 +48,7 @@ export const mapTable = sqliteTable(
   "map",
   {
     id: integer("id").primaryKey({ autoIncrement: true }).notNull(),
-    mapId: integer("bar-map-id"),
+    mapId: integer("bar-map-id").unique(),
     fileName: text("filename"),
     scriptName: text("script-name"),
     name: insensitiveText("name", {}).notNull(),
@@ -46,7 +56,7 @@ export const mapTable = sqliteTable(
   },
   (table) => {
     return {
-      name_idx: index("map-name-idx").on(table.name),
+      //name_idx: index("map-name-idx").on(table.name),
       subclass_foreign_key: foreignKey({
         name: "subclass-foreign-key",
         columns: [table.subclassOfId],
