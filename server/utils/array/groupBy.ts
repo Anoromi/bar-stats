@@ -41,3 +41,39 @@ export function groupByMapped<T, G, V>(
   }
   return groups as Grouped<V, G>[];
 }
+
+export function groupByMappedWithMap<T, G, V>(
+  values: T[],
+  {
+    getMappableKey,
+    selectGroupKey,
+    selectGroupValue,
+  }: {
+    getMappableKey: (group: G) => unknown;
+    selectGroupKey: (value: T) => G;
+    selectGroupValue: (value: T) => V;
+  },
+): Grouped<V, G>[] {
+  const map = new Map<unknown, T[]>();
+
+  for (const value of values) {
+    const key = getMappableKey(selectGroupKey(value));
+    let arr = map.get(key);
+    if (arr === undefined) {
+      arr = [value];
+      map.set(key, arr);
+    } else {
+      arr.push(value);
+    }
+  }
+  const groups : Grouped<V, G>[] = []
+
+  for(const [_, grouped] of map)  {
+    groups.push({
+      key: selectGroupKey(grouped[0]),
+      values: grouped.map(v => selectGroupValue(v))
+    })
+  }
+
+  return groups as Grouped<V, G>[];
+}
