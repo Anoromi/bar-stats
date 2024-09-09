@@ -1,5 +1,5 @@
 rm -rf drizzle
 npx drizzle-kit generate
 rm local.db
-npm run postbuild
+npm run lpostbuild
 
