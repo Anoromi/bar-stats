@@ -3,15 +3,14 @@ import { and, count, desc, eq, exists, inArray, max, sql } from "drizzle-orm";
 import type { BattleEntity } from "../database/schema";
 import { battleTable } from "../database/schema";
 import { logAnalyze } from "../database/explainAnalyze";
-import type { MapService } from "#imports";
 import consola from "consola";
 import type { Grouped } from "../array/groupBy";
-import { groupByMappedWithMap } from "../array/groupBy";
 import type {
   BattleDto,
   BattleDtoInsert,
   UserToBattleTeamDto,
 } from "../dto/dto";
+import type { MapService } from "#imports";
 
 export const lastBattleQuery = () =>
   db
@@ -141,7 +140,12 @@ export class BattleService {
           player: userToBattleTable,
         })
         .from(battleTable)
-        .where(and(eq(battleTable.id, v.id), eq(userToBattleTable.isSpectator, false)))
+        .where(
+          and(
+            eq(battleTable.id, v.id),
+            eq(userToBattleTable.isSpectator, false),
+          ),
+        )
         .innerJoin(
           userToBattleTable,
           eq(battleTable.id, userToBattleTable.battleTeamBattleId),
@@ -150,11 +154,11 @@ export class BattleService {
         .orderBy(desc(battleTable.startTime)),
     );
 
-    const battle = (await Promise.all(battleRequests)).map(v => {
+    const battle = (await Promise.all(battleRequests)).map((v) => {
       return {
         key: v[1].battle,
-        values: v.map(x => x.player)
-      } satisfies BattleWithPlayers
+        values: v.map((x) => x.player),
+      } satisfies BattleWithPlayers;
     });
     //const k = [
     //  db.select().from(battleTable)
@@ -200,7 +204,7 @@ export class BattleService {
     //   selectGroupValue: (value) => value.player,
     //   getMappableKey: (group) => group.id,
     // });
-    return battle
+    return battle;
   }
 
   insertBattles() {}
