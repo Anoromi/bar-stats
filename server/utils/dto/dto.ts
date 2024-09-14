@@ -19,3 +19,9 @@ export type BattleTeamDtoInsert = BattleTeamEntityInsert;
 
 export type UserToBattleTeamDto = UserToBattleTeamEntity;
 export type UserToBattleTeamDtoInsert = UserToBattleTeamEntityInsert;
+
+export type UserDto = {
+  username: string;
+  id: number[];
+  countryCode: string | null;
+};
