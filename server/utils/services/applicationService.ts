@@ -19,12 +19,7 @@ class ApplicationService {
     let boundary: Date;
     if (lastBattle === null) {
       const now = new Date();
-      boundary = new Date(now.getTime() - 1000 * 60 * 60 * 24);
-      //boundary = new Date(
-      //  now.getUTCFullYear(),
-      //  now.getUTCMonth(),
-      //  now.getUTCDate(),
-      //);
+      boundary = new Date(now.getTime() - 1000 * 60 * 60 * 6);
     } else {
       boundary = lastBattle.startTime;
     }
