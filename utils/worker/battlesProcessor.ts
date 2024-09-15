@@ -3,9 +3,6 @@ import type { GetBattleQuery } from "~/server/api/battle";
 import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 
 console.log("I'm running something");
-fetch("/api/test").then(async (e) => {
-  console.log(await e.json());
-});
 
 type GetBattleDataCall = {
   type: "battle";
