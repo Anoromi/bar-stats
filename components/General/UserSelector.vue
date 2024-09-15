@@ -25,9 +25,12 @@ const arrayData = useFieldArray<UserDto>(props.name);
 const { worker: userSuggestionsClient } = useClientWorker<
   UserCacheRequest,
   UserCacheResponse
->(new URL("~/utils/worker/userCacheWorker", import.meta.url), {
-  type: "module",
-});
+>(
+  () =>
+    new Worker(new URL("~/utils/worker/userCacheWorker", import.meta.url), {
+      type: "module",
+    }),
+);
 
 const searchValue = ref("");
 const debouncedSearchValue = useDebounce(searchValue, 300);
@@ -108,7 +111,7 @@ function isIncluded(value: UserDto) {
           </FormControl>
         </PopoverTrigger>
         <PopoverContent
-          class="w-[--radix-popover-trigger-width] h-[--radix-popover-content-available-height] bg-background p-0"
+          class="h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] bg-background p-0"
         >
           <Command
             v-model:search-term="searchValue"

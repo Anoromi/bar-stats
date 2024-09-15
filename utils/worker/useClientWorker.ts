@@ -2,13 +2,14 @@ import { isClient, tryOnScopeDispose } from "@vueuse/core";
 import { WorkerClient } from "./core/client";
 
 export function useClientWorker<Request, Response>(
-  url: URL,
-  workerOptions?: WorkerOptions,
+  workerGenerator: () => Worker
 ) {
   const worker = shallowRef<Worker>();
 
   if (isClient) {
-    worker.value = new Worker(url, workerOptions);
+  // url: URL,
+  // workerOptions?: WorkerOptions,
+    worker.value = workerGenerator();
   }
   const workerClient = computed(() => {
     if (worker.value === undefined) return undefined;
