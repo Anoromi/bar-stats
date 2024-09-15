@@ -15,9 +15,7 @@ const formSchema = toTypedSchema(
       })
       .array()
       .default([]),
-    //username: z.string().min(2).max(50),
     map: z.string(),
-    hehe: z.string(),
   }),
 );
 
@@ -54,15 +52,17 @@ watchEffect(async () => {
 const onSubmit = form.handleSubmit((values) => {
   console.log("Form submitted!", values);
 });
-
 </script>
 
 <template>
-  <form @submit="onSubmit">
-    <FormField v-slot="data" name="map">
-      <GeneralMapSelector v-bind="data"></GeneralMapSelector>
-    </FormField>
-    <GeneralUserSelector name="users"></GeneralUserSelector>
-    <Button type="submit">Submit</Button>
-  </form>
+  <article class="flex-col flex items-center p-4">
+    <form class="w-full sm:w-[64rem] sm:mt-10 mt-4" @submit="onSubmit">
+      <legend class="mb-4 text-lg font-bold">
+        Specify data for search
+      </legend>
+      <GeneralMapSelector name="map"></GeneralMapSelector>
+      <GeneralUserSelector name="users"></GeneralUserSelector>
+      <Button type="submit">Submit</Button>
+    </form>
+  </article>
 </template>
