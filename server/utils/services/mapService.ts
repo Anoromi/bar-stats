@@ -28,21 +28,9 @@ export const findMapByNameQuery = (mapName: string) => {
 
 export const findMapByNameLikeQuery = (mapName: string) => {
   const maxValue = mapName + String.fromCodePoint(1114111);
-  //const maxValue = mapName + "Z";
   return db.select().from(mapTable).limit(10)
-  //.where(gt(mapTable.name, mapName))
-  //.where(gt(mapTable.name, mapName));
   .where(between(mapTable.name, mapName, maxValue));
 };
-
-const findMapByNameDbQuery = lazy(() =>
-  db
-    .select()
-    .from(mapTable)
-    .limit(20)
-    .where(gt(mapTable.name, sql.placeholder("mapName")))
-    .prepare(),
-);
 
 export class MapService {
   async getMaps(ids: number[]) {
@@ -75,8 +63,7 @@ export class MapService {
   }
 
   async getMapSuggestions(mapName: string): Promise<MapDto[]> {
-    const result = await logAnalyze(findMapByNameLikeQuery(mapName));
-    //const result = await findMapByNameDbQuery.get().execute({ mapName });
+    const result = findMapByNameLikeQuery(mapName);
     return result;
   }
 }

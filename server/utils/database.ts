@@ -14,7 +14,6 @@ export function initDb(url: string, authToken?: string) {
     consola.log('url', url, authToken)
     const client = createClient({ url: url, authToken: authToken });
     db = drizzle(client, { schema });
-    consola.log('select', db, drizzle(client, { schema }))
   }
   return db;
 }

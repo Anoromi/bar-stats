@@ -2,7 +2,6 @@ import type { SQLWrapper } from "drizzle-orm";
 import { and, count, desc, eq, exists, inArray, max, sql } from "drizzle-orm";
 import type { BattleEntity } from "../database/schema";
 import { battleTable } from "../database/schema";
-import { logAnalyze } from "../database/explainAnalyze";
 import consola from "consola";
 import type { Grouped } from "../array/groupBy";
 import type {
@@ -108,31 +107,28 @@ export class BattleService {
       conditions.push(inArray(battleTable.mapId, possibleMapIds));
     }
 
-    const battleIds = await logAnalyze(
-      db
-        .select({
-          id: battleTable.id,
-        })
-        .from(battleTable)
-        .where(
-          and(
-            ...conditions,
-            eq(userToBattleTable.isSpectator, false),
-            eq(battleTable.endedNormally, true),
-            eq(battleTable.hasBots, false),
-            ...(battleType != null
-              ? [eq(battleTable.battleType, battleType)]
-              : []),
-          ),
-        )
-        .innerJoin(
-          userToBattleTable,
-          eq(battleTable.id, userToBattleTable.battleTeamBattleId),
-        )
-        .limit(limit)
-        .orderBy(desc(battleTable.startTime)),
-    );
-
+    const battleIds = await db
+      .select({
+        id: battleTable.id,
+      })
+      .from(battleTable)
+      .where(
+        and(
+          ...conditions,
+          eq(userToBattleTable.isSpectator, false),
+          eq(battleTable.endedNormally, true),
+          eq(battleTable.hasBots, false),
+          ...(battleType != null
+            ? [eq(battleTable.battleType, battleType)]
+            : []),
+        ),
+      )
+      .innerJoin(
+        userToBattleTable,
+        eq(battleTable.id, userToBattleTable.battleTeamBattleId),
+      )
+      .limit(limit)
+      .orderBy(desc(battleTable.startTime));
     const battleRequests = battleIds.map((v) =>
       db
         .select({
