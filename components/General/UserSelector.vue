@@ -6,11 +6,11 @@ import { cn } from "~/lib/utils";
 import type { UserDto } from "~/server/utils/dto/dto";
 import FormItem from "../ui/form/FormItem.vue";
 import type { CancelablePromise } from "~/utils/worker/core/cancelablePromise";
-import { WorkerClient } from "~/utils/worker/core/client";
 import type {
   UserCacheRequest,
   UserCacheResponse,
 } from "~/utils/worker/userCacheWorker";
+import { useClientWorker } from "~/utils/worker/useClientWorker";
 
 //const props = defineProps<FieldArrayContext<UserDto>>();
 
@@ -19,11 +19,15 @@ const props = defineProps<{
 }>();
 const opened = ref(false);
 
-const fieldData = useField<UserDto[]>(props.name);
+const _fieldData = useField<UserDto[]>(props.name);
 const arrayData = useFieldArray<UserDto>(props.name);
 
-const userSuggestionsClient =
-  shallowRef<WorkerClient<UserCacheRequest, UserCacheResponse>>();
+const { worker: userSuggestionsClient } = useClientWorker<
+  UserCacheRequest,
+  UserCacheResponse
+>(new URL("~/utils/worker/userCacheWorker", import.meta.url), {
+  type: "module",
+});
 
 const searchValue = ref("");
 const debouncedSearchValue = useDebounce(searchValue, 300);
@@ -54,127 +58,106 @@ function isIncluded(value: UserDto) {
     (v) => v.value.username === value.username,
   );
 }
-
-onNuxtReady(() => {
-  const worker = new Worker(
-    new URL("~/utils/worker/userCacheWorker", import.meta.url),
-    { type: "module" },
-  );
-  userSuggestionsClient.value = new WorkerClient<
-    UserCacheRequest,
-    UserCacheResponse
-  >(worker);
-});
 </script>
 
 <template>
   <FormItem class="flex flex-col">
     <FormLabel>User</FormLabel>
-    <template v-if="arrayData.fields.value.length !== 0">
-      <FormField
-        v-for="(user, index) in arrayData.fields.value"
-        :key="user.value.username"
-        :name="`${name}[${index}]`"
-      >
-        <FormLabel>
-          {{ user.value.username }}
-        </FormLabel>
-        <Button
-          @click="(e: MouseEvent) => {
-          console.log('clicked')
-          e.stopPropagation(); arrayData.remove(index)
-        }"
+    <ClientOnly>
+      <Popover v-model:open="opened">
+        <PopoverTrigger as-child>
+          <FormControl>
+            <Button
+              variant="elevated"
+              role="combobox"
+              :class="
+                cn(
+                  'min-w-72 max-w-96 justify-between',
+                  userSuggestions !== null && 'text-muted-foreground',
+                )
+              "
+            >
+              <template v-if="arrayData.fields.value.length !== 0">
+                <FormField
+                  v-for="(user, index) in arrayData.fields.value"
+                  :key="user.value.username"
+                  :name="`${name}[${index}]`"
+                >
+                  <div class="">
+                    <FormLabel class="inline">
+                      {{ user.value.username }}
+                    </FormLabel>
+                    <Button
+                      variant="destructive"
+                      @click="
+                        (e) => {
+                          console.log('clicked');
+                          e.stopPropagation();
+                          arrayData.remove(index);
+                        }
+                      "
+                    >
+                      <Cross2Icon />
+                    </Button>
+                  </div>
+                </FormField>
+              </template>
+              <template v-else> Select user... </template>
+              <ChevronDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+            </Button>
+          </FormControl>
+        </PopoverTrigger>
+        <PopoverContent
+          class="w-[--radix-popover-trigger-width] h-[--radix-popover-content-available-height] bg-background p-0"
         >
-          <Cross2Icon />
-        </Button>
-      </FormField>
-    </template>
-
-    <Popover v-model:open="opened">
-      <PopoverTrigger as-child>
-        <FormControl>
-          <Button
-            variant="outline"
-            role="combobox"
-            :class="
-              cn(
-                ' min-w-72 max-w-96 justify-between',
-                userSuggestions !== null && 'text-muted-foreground',
-              )
-            "
+          <Command
+            v-model:search-term="searchValue"
+            :filter-function="(v) => v"
           >
-            <template v-if="arrayData.fields.value.length !== 0">
-              <FormField
-                v-for="(user, index) in arrayData.fields.value"
-                :key="user.value.username"
-                :name="`${name}[${index}]`"
-              >
-                <FormLabel>
-                  {{ user.value.username }}
-                </FormLabel>
-                <Button
-                  @click="
-                    (e) => {
-                      console.log('clicked');
-                      e.stopPropagation();
-                      arrayData.remove(index);
+            <CommandInput placeholder="Search user..." />
+            <CommandEmpty>
+              <template v-if="isLoading">Loading </template>
+              <template v-else>Nothing found.</template>
+            </CommandEmpty>
+            <CommandList>
+              <CommandGroup>
+                <CommandItem
+                  v-for="user in userSuggestions"
+                  :key="user.username"
+                  :value="user"
+                  @select="
+                    () => {
+                      opened = false;
+                      arrayData.push(user);
                     }
                   "
                 >
-                  <Cross2Icon />
-                </Button>
-              </FormField>
-            </template>
-            <template v-else> Select user... </template>
-            <ChevronDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
-          </Button>
-        </FormControl>
-      </PopoverTrigger>
-      <PopoverContent class="w-72 p-0 bg-background">
-        <Command v-model:search-term="searchValue" :filter-function="(v) => v">
-          <CommandInput placeholder="Search map..." />
-          <CommandEmpty>
-            <template v-if="isLoading">Loading </template>
-            <template v-else>Nothing found.</template>
-          </CommandEmpty>
-          <CommandList>
-            <CommandGroup>
-              <CommandItem
-                v-for="user in userSuggestions"
-                :key="user.username"
-                :value="user"
-                @select="
-                  () => {
-                    opened = false;
-                    arrayData.push(user);
-                  }
-                "
-              >
-                <CheckIcon
-                  :class="
-                    cn(
-                      'mr-2 h-4 w-4',
-                      isIncluded(user) ? 'opacity-100' : 'opacity-0',
-                    )
-                  "
-                />
-                <NuxtImg
-                class="mx-2"
-                  :src="`https://flagcdn.com/16x12/${user.countryCode!.toLowerCase()}.png`"
-                  :srcset="`
-                    https://flagcdn.com/32x24/${user.countryCode!.toLowerCase()}.png 2x,
-                    https://flagcdn.com/48x36/${user.countryCode!.toLowerCase()}.png 3x
-                  `"
-                  width="16"
-                  height="12"
-                  :alt="user.countryCode!"
-                />
-                {{ user.username }}
-              </CommandItem>
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+                  <CheckIcon
+                    :class="
+                      cn(
+                        'mr-2 h-4 w-4',
+                        isIncluded(user) ? 'opacity-100' : 'opacity-0',
+                      )
+                    "
+                  />
+                  <NuxtImg
+                    class="mx-2"
+                    :src="`https://flagcdn.com/16x12/${user.countryCode!.toLowerCase()}.png`"
+                    :srcset="`
+      https://flagcdn.com/32x24/${user.countryCode!.toLowerCase()}.png 2x,
+      https://flagcdn.com/48x36/${user.countryCode!.toLowerCase()}.png 3x
+      `"
+                    width="16"
+                    height="12"
+                    :alt="user.countryCode?.slice(undefined, 2)"
+                  />
+                  {{ user.username }}
+                </CommandItem>
+              </CommandGroup>
+            </CommandList>
+          </Command>
+        </PopoverContent>
+      </Popover>
+    </ClientOnly>
   </FormItem>
 </template>
