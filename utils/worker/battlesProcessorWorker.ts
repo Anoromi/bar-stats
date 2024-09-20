@@ -1,6 +1,7 @@
 import consola from "consola";
 import type { GetBattleQuery } from "~/server/api/battle";
 import type { BattleWithPlayers } from "~/server/utils/services/battleService";
+import { WorkerServer } from "./core/server";
 
 console.log("I'm running something");
 
@@ -77,6 +78,9 @@ function calculateTeamWinrate(battles: BattleWithPlayers[]) {
   }
   return teamWinrate
 }
+
+
+
 
 function calculateWinrateOfFactions(battles: BattleWithPlayers[]) {
   const factions: Record<
