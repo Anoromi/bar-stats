@@ -11,6 +11,7 @@ import type {
   UserCacheResponse,
 } from "~/utils/worker/userCacheWorker";
 import { useClientWorker } from "~/utils/worker/useClientWorker";
+import DevClientOnly from "./DevClientOnly.vue";
 
 //const props = defineProps<FieldArrayContext<UserDto>>();
 
@@ -66,7 +67,7 @@ function isIncluded(value: UserDto) {
 <template>
   <FormItem class="flex flex-col">
     <FormLabel>User</FormLabel>
-    <ClientOnly>
+    <DevClientOnly>
       <Popover v-model:open="opened">
         <PopoverTrigger as-child>
           <FormControl>
@@ -75,7 +76,7 @@ function isIncluded(value: UserDto) {
               role="combobox"
               :class="
                 cn(
-                  'min-w-72 max-w-96 justify-between',
+                  'justify-between',
                   userSuggestions !== null && 'text-muted-foreground',
                 )
               "
@@ -92,10 +93,8 @@ function isIncluded(value: UserDto) {
                     </FormLabel>
                     <Button
                       variant="destructive"
-                      @click="
-                        (e) => {
-                          console.log('clicked');
-                          e.stopPropagation();
+                      @click.stop="
+                        () => {
                           arrayData.remove(index);
                         }
                       "
@@ -111,7 +110,7 @@ function isIncluded(value: UserDto) {
           </FormControl>
         </PopoverTrigger>
         <PopoverContent
-          class="h-[--radix-popover-content-available-height] w-[--radix-popover-trigger-width] bg-background p-0"
+          class="w-[--radix-popover-trigger-width] bg-background p-0"
         >
           <Command
             v-model:search-term="searchValue"
@@ -147,9 +146,9 @@ function isIncluded(value: UserDto) {
                     class="mx-2"
                     :src="`https://flagcdn.com/16x12/${user.countryCode!.toLowerCase()}.png`"
                     :srcset="`
-      https://flagcdn.com/32x24/${user.countryCode!.toLowerCase()}.png 2x,
-      https://flagcdn.com/48x36/${user.countryCode!.toLowerCase()}.png 3x
-      `"
+    https://flagcdn.com/32x24/${user.countryCode!.toLowerCase()}.png 2x,
+    https://flagcdn.com/48x36/${user.countryCode!.toLowerCase()}.png 3x
+    `"
                     width="16"
                     height="12"
                     :alt="user.countryCode?.slice(undefined, 2)"
@@ -161,6 +160,6 @@ function isIncluded(value: UserDto) {
           </Command>
         </PopoverContent>
       </Popover>
-    </ClientOnly>
+    </DevClientOnly>
   </FormItem>
 </template>

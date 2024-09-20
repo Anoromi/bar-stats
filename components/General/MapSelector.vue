@@ -6,6 +6,7 @@ import type { GetMapSuggestionQuery } from "~/server/api/map-suggestion";
 import type Button from "../ui/button/Button.vue";
 import type { ComponentPublicInstance } from "vue";
 import { useField } from "vee-validate";
+import DevClientOnly from "./DevClientOnly.vue";
 
 const props = defineProps<{ name: string }>();
 
@@ -46,7 +47,7 @@ watchEffect(() => {
 <template>
   <FormItem class="flex flex-col">
     <FormLabel>Map</FormLabel>
-    <ClientOnly>
+    <DevClientOnly>
       <Popover v-model:open="mapModelOpened">
         <PopoverTrigger as-child>
           <FormControl>
@@ -56,7 +57,7 @@ watchEffect(() => {
               role="combobox"
               :class="
                 cn(
-                  'min-w-72 max-w-96 justify-between',
+                  'justify-between',
                   mapSuggestions !== null && 'text-muted-foreground',
                 )
               "
@@ -112,12 +113,8 @@ watchEffect(() => {
           </Command>
         </PopoverContent>
       </Popover>
-    </ClientOnly>
+    </DevClientOnly>
+
     <FormMessage />
   </FormItem>
 </template>
-<style scoped>
-.popover-width {
-  width: v-bind("targetWidth") !important;
-}
-</style>
