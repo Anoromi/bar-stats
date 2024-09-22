@@ -1,12 +1,13 @@
 import { isClient } from "@vueuse/core";
 
+type ColorThemeOptions = "light" | "dark"
 const colorKey = "color-theme";
 export function useColor() {
-  const state = useState(colorKey, () => "light");
+  const state = useState(colorKey, () => "light" as ColorThemeOptions);
 
-  if (isClient) state.value = localStorage.getItem(colorKey) ?? "light";
+  if (isClient) state.value = localStorage.getItem(colorKey) as ColorThemeOptions ?? "light";
 
-  function updateState(value: string) {
+  function updateState(value: ColorThemeOptions) {
     state.value = value;
     localStorage.setItem(colorKey, value);
   }

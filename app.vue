@@ -1,12 +1,21 @@
 <script setup lang="tsx">
 const { color } = useColor();
-useHead(
-  computed(() => ({
-    bodyAttrs: {
-      class: color.value,
-    },
-  })),
-);
+
+const d = document?.body;
+
+watchEffect(() => {
+  if (d) d.classList.toggle("dark", color.value === "dark");
+});
+
+//useHead(
+//  computed(() => {
+//    return ({
+//      bodyAttrs: {
+//        class: color.value,
+//      },
+//    });
+//  }),
+//);
 </script>
 
 <template>

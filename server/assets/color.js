@@ -1,4 +1,4 @@
 
 
-const d = document.documentElement
+const d = document.body
 d.classList.add(localStorage.getItem('color-theme'))
