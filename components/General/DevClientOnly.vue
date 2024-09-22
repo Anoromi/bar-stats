@@ -6,4 +6,5 @@ const isDev = import.meta.dev;
   <ClientOnly v-if="isDev">
     <slot />
   </ClientOnly>
+  <slot v-else />
 </template>
