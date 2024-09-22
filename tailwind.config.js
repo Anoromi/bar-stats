@@ -12,12 +12,11 @@ module.exports = {
       padding: "2rem",
       screens: {
         "2xl": "1400px",
-      }
+      },
     },
     extend: {
       fontFamily: {
-        sans: 'Noto Sans'
-
+        sans: "Noto Sans",
       },
       colors: {
         border: "rgba(var(--foreground), <alpha-value>)",
@@ -34,30 +33,15 @@ module.exports = {
           DEFAULT: "rgba(var(--secondary), <alpha-value>)",
           foreground: "rgba(var(--secondary-foreground), <alpha-value>)",
         },
-        destructive: {
-          DEFAULT: "rgba(var(--destructive), <alpha-value>)",
-          foreground: "rgba(var(--destructive-foreground), <alpha-value>)",
-        },
-        muted: {
-          DEFAULT: "rgba(var(--muted), <alpha-value>)",
-          foreground: "rgba(var(--muted-foreground), <alpha-value>)",
-        },
-        accent: {
-          DEFAULT: "rgba(var(--accent), <alpha-value>)",
-          foreground: "rgba(var(--accent-foreground), <alpha-value>)",
-        },
-        popover: {
-          DEFAULT: "rgba(var(--popover), <alpha-value>)",
-          foreground: "rgba(var(--popover-foreground), <alpha-value>)",
-        },
-        card: {
-          DEFAULT: "rgba(var(--card), <alpha-value>)",
-          foreground: "rgba(var(--card-foreground), <alpha-value>)",
-        },
         surface: {
           DEFAULT: "rgba(var(--surface), <alpha-value>)",
+          high: "rgba(var(--surface-high), <alpha-value>)",
           foreground: "rgba(var(--surface-foreground), <alpha-value>)",
         },
+        emphasis: {
+          DEFAULT: "rgba(var(--emphasis), <alpha-value>)",
+          foreground: "rgba(var(--emphasis-foreground), <alpha-value>)",
+        }
       },
       borderRadius: {
         xl: "calc(var(--radius) + 4px)",

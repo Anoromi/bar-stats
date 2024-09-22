@@ -4,6 +4,28 @@
 
 @layer base {
   :root {
+    --light--primary: 95, 36, 219;
+    --light--secondary: 31, 170, 213;
+    --light--background: 238, 239, 244;
+    --light--emphasis: 227, 217, 248;
+    --light--foreground: 0, 2, 15;
+    --light--primary-foreground: 234, 228, 247;
+    --light--secondary-foreground: 206, 237, 247;
+    --light--foreground-variant: 55, 55, 55;
+    --light--surface: 234, 228, 248;
+    --light--emphasis-foreground: 44, 31, 72;
+    --light--surface-high: 223, 215, 239;
+    --dark--background: 18, 18, 18;
+    --dark--emphasis: 53, 44, 71;
+    --dark--foreground: 210, 210, 210;
+    --dark--surface-foreground: 211, 213, 232;
+    --dark--foreground-variant: 212, 214, 229;
+    --dark--primary: 158, 120, 238;
+    --dark--primary-foreground: 27, 12, 59;
+    --dark--surface: 30, 28, 33;
+    --dark--surface-high: 33, 30, 39;
+    --dark--emphasis-foreground: 208, 199, 227;
+
     /*--background: 0 0% 100%;
     --foreground: 240 10% 3.9%; */
 
@@ -22,21 +44,20 @@
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%; */
 
-    --primary: 95, 36, 219;
-    --secondary: 31, 170, 213;
-    --background: 238, 239, 244;
-    --surface: 227, 217, 248;
-    --foreground: 0, 2, 15;
-    --primary-foreground: 234, 228, 247;
-    --secondary-foreground: 206, 237, 247;
-    --foreground-variant: 55, 55, 55;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --primary: var(--light--primary);
+    --secondary: var(--light--secondary);
+    --background: var(--light--background);
+    --emphasis: var(--light--emphasis);
+    --foreground: var(--light--foreground);
+    --primary-foreground: var(--light--primary-foreground);
+    --secondary-foreground: var(--light--secondary-foreground);
+    --foreground-variant: var(--light--foreground-variant);
+    --surface: var(--light--surface);
+    --emphasis-foreground: var(--light--emphasis-foreground);
+    --surface-high: var(--light--surface-high);
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --ring: 240 10% 3.9%;
+    --destructive: var(--light--destructive);
+    --destructive-foreground: var(--light--destructive-foreground);
 
     --radius: 0.5rem;
 
@@ -45,22 +66,19 @@
   }
 
   .dark {
-    --background: 52, 53, 59;
-    --surface: 65, 54, 89;
-    --foreground: 228, 230, 247;
-    --surface-foreground: 211, 213, 232;
-    --foreground-variant: 212, 214, 229;
-    --primary: 158, 120, 238;
-    --primary-foreground: 27, 12, 59;
+    --primary: var(--dark--primary);
+    --secondary: var(--dark--secondary);
+    --background: var(--dark--background);
+    --emphasis: var(--dark--emphasis);
+    --foreground: var(--dark--foreground);
+    --primary-foreground: var(--dark--primary-foreground);
+    --secondary-foreground: var(--dark--secondary-foreground);
+    --foreground-variant: var(--dark--foreground-variant);
+    --surface: var(--dark--surface);
+    --emphasis-foreground: var(--dark--emphasis-foreground);
+    --surface-high: var(--dark--surface-high);
+    
 
-    /* --background: 240 10% 3.9%; */
-    /* --foreground: 0 0% 98%; */
-    /**/
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
-
-    --popover: 240 10% 3.9%;
-    --popover-foreground: 0 0% 98%;
     /**/
     /* --card: 240 10% 3.9%; */
     /* --card-foreground: 0 0% 98%; */
