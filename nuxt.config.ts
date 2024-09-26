@@ -23,6 +23,9 @@ export default defineNuxtConfig({
     }
   ],
   nitro: {
+    experimental: {
+      openAPI: true
+    },
     vercel: {
       config: {
         crons: [
