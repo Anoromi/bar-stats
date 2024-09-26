@@ -9,15 +9,15 @@ export const buttonVariants = cva(
         default:
           "bg-primary text-primary-foreground shadow hover:bg-primary/90 active:bg-primary/90",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+          "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
         outline:
-          "border border-foreground-variant/50 bg-transparent shadow-sm hover:bg-emphasis hover:text-emphasis-foreground active:bg-surface active:text-surface-foreground",
+          "border border-foreground-variant/50 bg-transparent shadow-sm hover:bg-emphasis hover:text-emphasis-foreground active:bg-emphasis/50 active:text-emphasis-foreground",
         secondary:
           "bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80",
-        ghost: "hover:bg-primary hover:text-primary-foreground",
+        ghost: "hover:bg-primary/[0.08]",
         link: "text-primary underline-offset-4 hover:underline",
         elevated:
-          "bg-transparent shadow-sm shadow-surface bg-foreground/5 hover:bg-emphasis hover:text-emphasis-foreground hover:shadow-none active:bg-surface active:text-surface-foreground active:shadow-none",
+          "bg-foreground/5 bg-transparent shadow-sm shadow-surface hover:bg-emphasis hover:text-emphasis-foreground hover:shadow-none active:bg-emphasis/50 active:text-foreground active:shadow-none",
       },
       size: {
         default: "h-9 px-4 py-2",
