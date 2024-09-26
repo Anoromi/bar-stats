@@ -1,7 +1,9 @@
 <script setup lang="tsx">
+import Toaster from "./components/ui/toast/Toaster.vue";
+
 const { color } = useColor();
 
-const d = document?.body;
+const d = document?.documentElement;
 
 watchEffect(() => {
   if (d) d.classList.toggle("dark", color.value === "dark");
@@ -22,5 +24,8 @@ watchEffect(() => {
   <NuxtLayout>
     <NuxtRouteAnnouncer />
     <NuxtPage />
+    <DevClientOnly>
+      <Toaster />
+    </DevClientOnly>
   </NuxtLayout>
 </template>
