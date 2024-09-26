@@ -13,6 +13,15 @@ export default defineNuxtConfig({
     prefix: "",
     componentDir: "./components/ui",
   },
+  components: [
+    {
+      path: "~/components/other",
+      pathPrefix: false
+    },
+    {
+      path: "~/components",
+    }
+  ],
   nitro: {
     vercel: {
       config: {
@@ -30,6 +39,11 @@ export default defineNuxtConfig({
         dir: "./drizzle",
       },
     ],
+  },
+  vite: {
+    optimizeDeps: {
+      exclude: ['vee-validate']
+    }
   },
   runtimeConfig: {
     DB_AUTH_TOKEN: "",
