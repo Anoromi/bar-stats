@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MoonIcon } from "@radix-icons/vue";
+import { MoonIcon, SunIcon } from "@radix-icons/vue";
 
 const { color } = useColor();
 
@@ -13,7 +13,7 @@ function invertColor() {
 <template>
   <main class="flex h-screen flex-col overflow-auto">
     <header
-      class="flex h-16 items-baseline bg-surface px-2 py-4 text-surface-foreground sm:px-4"
+      class="flex h-16 items-baseline bg-emphasis px-2 py-4 text-surface-foreground sm:px-4"
     >
       <NuxtLink class="text-2xl text-primary" to="/">
         <b>BAR</b> Stats
@@ -23,7 +23,8 @@ function invertColor() {
           overview
         </NuxtLink>
         <Button variant="link" @click="invertColor">
-          <MoonIcon></MoonIcon>
+          <MoonIcon v-if="color === 'dark'"></MoonIcon>
+          <SunIcon v-else></SunIcon> 
         </Button>
       </nav>
     </header>
