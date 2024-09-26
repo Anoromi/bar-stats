@@ -6,7 +6,6 @@ import type { GetMapSuggestionQuery } from "~/server/api/map-suggestion";
 import type Button from "../ui/button/Button.vue";
 import type { ComponentPublicInstance } from "vue";
 import { useField } from "vee-validate";
-import DevClientOnly from "./DevClientOnly.vue";
 
 const props = defineProps<{ name: string }>();
 
@@ -40,9 +39,10 @@ useResizeObserver(button, (e) => {
   targetWidth.value = resize.contentRect.width;
 });
 
-watchEffect(() => {
-  console.log("size", targetWidth.value);
-});
+function select(value: string | undefined) {
+  formField.setValue(value);
+  mapModelOpened.value = false;
+}
 </script>
 <template>
   <FormItem class="flex flex-col">
@@ -82,13 +82,33 @@ watchEffect(() => {
             <CommandList>
               <CommandGroup>
                 <CommandItem
+                  :key="'undefined'"
+                  :value="'undefined'"
+                  @select="
+                    () => {
+                      select(undefined);
+                    }
+                  "
+                >
+                  <CheckIcon
+                    :class="
+                      cn(
+                        'mr-2 h-4 w-4',
+                        formField.value.value === undefined
+                          ? 'opacity-100'
+                          : 'opacity-0',
+                      )
+                    "
+                  />
+                  None
+                </CommandItem>
+                <CommandItem
                   v-for="map in mapSuggestions"
                   :key="map.id"
                   :value="map.name"
                   @select="
                     () => {
-                      formField.setValue(map.name);
-                      mapModelOpened = false;
+                      select(map.name);
                     }
                   "
                 >

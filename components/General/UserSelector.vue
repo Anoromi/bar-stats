@@ -11,9 +11,6 @@ import type {
   UserCacheResponse,
 } from "~/utils/worker/userCacheWorker";
 import { useClientWorker } from "~/utils/worker/useClientWorker";
-import DevClientOnly from "./DevClientOnly.vue";
-
-//const props = defineProps<FieldArrayContext<UserDto>>();
 
 const props = defineProps<{
   name: string;
@@ -62,6 +59,15 @@ function isIncluded(value: UserDto) {
     (v) => v.value.username === value.username,
   );
 }
+
+function selectUser(user: UserDto) {
+  opened.value = false;
+  const userIndex = arrayData.fields.value.findIndex(
+    (v) => v.value.username === user.username,
+  );
+  if (userIndex === -1) arrayData.push(user);
+  else arrayData.remove(userIndex);
+}
 </script>
 
 <template>
@@ -81,30 +87,7 @@ function isIncluded(value: UserDto) {
                 )
               "
             >
-              <template v-if="arrayData.fields.value.length !== 0">
-                <FormField
-                  v-for="(user, index) in arrayData.fields.value"
-                  :key="user.value.username"
-                  :name="`${name}[${index}]`"
-                >
-                  <div class="">
-                    <FormLabel class="inline">
-                      {{ user.value.username }}
-                    </FormLabel>
-                    <Button
-                      variant="destructive"
-                      @click.stop="
-                        () => {
-                          arrayData.remove(index);
-                        }
-                      "
-                    >
-                      <Cross2Icon />
-                    </Button>
-                  </div>
-                </FormField>
-              </template>
-              <template v-else> Select user... </template>
+              Select user...
               <ChevronDownIcon class="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </FormControl>
@@ -129,8 +112,7 @@ function isIncluded(value: UserDto) {
                   :value="user"
                   @select="
                     () => {
-                      opened = false;
-                      arrayData.push(user);
+                      selectUser(user);
                     }
                   "
                 >
@@ -146,8 +128,8 @@ function isIncluded(value: UserDto) {
                     class="mx-2"
                     :src="`https://flagcdn.com/16x12/${user.countryCode!.toLowerCase()}.png`"
                     :srcset="`
-    https://flagcdn.com/32x24/${user.countryCode!.toLowerCase()}.png 2x,
-    https://flagcdn.com/48x36/${user.countryCode!.toLowerCase()}.png 3x
+                        https://flagcdn.com/32x24/${user.countryCode!.toLowerCase()}.png 2x,
+                        https://flagcdn.com/48x36/${user.countryCode!.toLowerCase()}.png 3x
     `"
                     width="16"
                     height="12"
@@ -161,5 +143,34 @@ function isIncluded(value: UserDto) {
         </PopoverContent>
       </Popover>
     </DevClientOnly>
+    <template v-if="arrayData.fields.value.length !== 0">
+      <div class="flex flex-wrap gap-x-2 gap-y-2">
+        <FormField
+          v-for="(user, index) in arrayData.fields.value"
+          :key="user.value.username"
+          :name="`${name}[${index}]`"
+        >
+          <div
+            class="bg-surface-high flex items-center rounded-lg py-1 pl-6 pr-2"
+          >
+            <FormLabel class="inline">
+              {{ user.value.username }}
+            </FormLabel>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="rounded-full"
+              @click.stop="
+                () => {
+                  arrayData.remove(index);
+                }
+              "
+            >
+              <Cross2Icon class="size-4" />
+            </Button>
+          </div>
+        </FormField>
+      </div>
+    </template>
   </FormItem>
 </template>
