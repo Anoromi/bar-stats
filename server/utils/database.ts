@@ -12,8 +12,12 @@ export function initDb(url: string, authToken?: string) {
   if (db === null) {
     consola.log("initializing db");
     consola.log('url', url, authToken)
+    try {
     const client = createClient({ url: url, authToken: authToken });
     db = drizzle(client, { schema });
+    } catch (error) {
+      console.error('Could not connect to database', error);
+    }
   }
   return db;
 }
