@@ -22,8 +22,11 @@ export default defineEventHandler<
   const requestParams = await getValidatedQuery(event, querySchema.parse);
   const battleService = useBattleService();
 
+  let users = requestParams.users;
+  if(users?.length === 0)
+    users = null;
   return await battleService.getBattles(
-    requestParams.users,
+    users,
     requestParams.map,
     requestParams.battleType,
     requestParams.limit ?? defaultLimit,
