@@ -15,11 +15,16 @@ export default defineEventHandler<
   Promise<MapDto[]>
 >(
   async (event) => {
+    try {
     consola.log("let's start")
     const query = await getValidatedQuery(event, querySchema.parse);
     const mapService = useMapService();
     consola.log('hehe', query)
     return await mapService.getMapSuggestions(query.name);
+    } catch (error) {
+      console.error(error);
+      throw error;
+    }
   },
   //{
   //  //maxAge: 1000 * 60 * 60,
