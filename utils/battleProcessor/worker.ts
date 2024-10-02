@@ -1,24 +1,8 @@
-import consola from "consola";
 import type { GetBattleQuery } from "~/server/api/battle";
-import type { BattleWithPlayers } from "~/server/utils/services/battleService";
-import { WorkerServer } from "./core/server";
+import { WorkerServer } from "../worker/core/server";
+import { calculateAvgOsToTime } from "./osToTime";
 
 console.log("I'm running something");
-
-type GetBattleDataCall = {
-  type: "battle";
-  requestParams: GetBattleQuery;
-};
-
-type DestroyCall = {
-  type: "destroy";
-};
-
-export type BattleProcessorParams = GetBattleDataCall | DestroyCall;
-
-export type BattleProcessorResult = {
-  hello: string;
-};
 
 function generateParams<T>(
   ...values: [keyof T, string | unknown | null | undefined][]
@@ -31,7 +15,7 @@ function generateParams<T>(
 }
 
 async function processBattleRequest(params: GetBattleQuery) {
-  const result = await fetch(
+  const battles = await fetch(
     "/api/battle?" +
       new URLSearchParams(
         generateParams<GetBattleQuery>(
@@ -47,40 +31,54 @@ async function processBattleRequest(params: GetBattleQuery) {
       },
     },
   ).then(async (v) => (await v.json()) as BattleWithPlayers[]);
-  consola.log("received", result);
-  consola.log(
+  console.log("received", battles);
+  console.log(
     "received",
-    result.map((v) => v.key.id),
+    battles.map((v) => v.key.id),
   );
+
+  return {
+    ...genericProcess(battles),
+    ...(params.map === null ? processAnyMaps(battles) : []),
+    ...(params.map !== null ? processSpecificMap(battles) : []),
+  };
+}
+
+function genericProcess(battles: BattleWithPlayers[]) {
+  return {
+    factionWinrate: calculateWinrateOfFactions(battles),
+    osToTime: calculateAvgOsToTime(battles, battles.length / 20),
+    osToTime2: calculateAvgOsToTime(battles, battles.length / 10),
+    osToTime3: calculateAvgOsToTime(battles, battles.length / 5),
+  };
+}
+
+function processAnyMaps(battles: BattleWithPlayers[]) {
+  return {};
 }
 
 function processSpecificMap(battles: BattleWithPlayers[]) {
   return {
-    teamWinrate:  calculateTeamWinrate(battles),
-    factionWinrate: calculateWinrateOfFactions(battles),
-  }
+    teamWinrate: calculateTeamWinrate(battles),
+  };
 }
 
 function calculateTeamWinrate(battles: BattleWithPlayers[]) {
-  const teamWins : Record<number, number> = {}
+  const teamWins: Record<number, number> = {};
 
-  for(const battle of battles) {
-    const winningTeam = battle.key.winningTeam
-    if(winningTeam === null)
-      continue;
+  for (const battle of battles) {
+    const winningTeam = battle.key.winningTeam;
+    if (winningTeam === null) continue;
     teamWins[winningTeam] ??= 0;
     teamWins[winningTeam]++;
   }
 
-  const teamWinrate : Record<number, number> = {}
-  for(const key in teamWins) {
-    teamWinrate[key] = teamWins[key] / battles.length
+  const teamWinrate: Record<number, number> = {};
+  for (const key in teamWins) {
+    teamWinrate[key] = teamWins[key] / battles.length;
   }
-  return teamWinrate
+  return teamWinrate;
 }
-
-
-
 
 function calculateWinrateOfFactions(battles: BattleWithPlayers[]) {
   const factions: Record<
@@ -94,7 +92,7 @@ function calculateWinrateOfFactions(battles: BattleWithPlayers[]) {
     const battleFactions: Record<string, { won: number; lost: number }> = {};
     for (const player of battle.values) {
       const faction = player.faction;
-      if (faction === null) continue;
+      if (faction === null || faction === "Unknown") continue;
       battleFactions[faction] ??= { won: 0, lost: 0 };
       if (player.teamId === battle.key.winningTeam)
         battleFactions[faction].won++;
@@ -123,22 +121,33 @@ function calculateWinrateOfFactions(battles: BattleWithPlayers[]) {
   return factionEvaluation;
 }
 
-onmessage = async (message) => {
-  const data = message.data as BattleProcessorParams;
+export type BattlesProcessorRequest = {
+  type: "battle";
+  params: GetBattleQuery;
+};
+
+export type BattlesProcessorResponse = {
+  type: "battle";
+  data: {
+    factionWinrate: Record<string, number>;
+    teamWinrate?: Record<number, number>;
+    osToTime: [os: number, time: number][];
+    osToTime2: [os: number, time: number][];
+    osToTime3: [os: number, time: number][];
+  };
+};
+
+const server = new WorkerServer<
+  BattlesProcessorRequest,
+  BattlesProcessorResponse
+>(async (_, data) => {
   switch (data.type) {
     case "battle":
-      await processBattleRequest(data.requestParams);
-      break;
-    case "destroy":
-      break;
+      return {
+        type: "battle",
+        data: await processBattleRequest(data.params),
+      };
   }
+});
 
-  //switch (type?.toLowerCase()) {
-  //  case "connect":
-  //    postMessage('hello there')
-  //    //console.log('hello there')
-  //    break;
-  //  case "destroy":
-  //    break;
-  //}
-};
+onmessage = server.listener;
