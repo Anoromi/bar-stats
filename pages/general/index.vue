@@ -1,13 +1,14 @@
-<script setup lang="tsx">
+<script setup lang="ts">
 import { toTypedSchema } from "@vee-validate/zod";
 import * as z from "zod";
 import { useForm } from "vee-validate";
 import type {
   BattlesProcessorRequest,
   BattlesProcessorResponse,
-} from "~/utils/worker/battlesProcessorWorker";
+} from "~/utils/battleProcessor/worker";
 import { useClientWorker } from "~/utils/worker/useClientWorker";
 import { toast } from "~/components/ui/toast";
+import type { StackedBarDataRecord } from "@unovis/ts/components/stacked-bar/types";
 
 const formSchema = toTypedSchema(
   z.object({
@@ -33,36 +34,15 @@ const { worker } = useClientWorker<
 >(
   () =>
     new Worker(
-      new URL("~/utils/worker/battlesProcessorWorker", import.meta.url),
+      new URL("~/utils/battleProcessor/worker", import.meta.url),
       { type: "module" },
     ),
 );
 
-//watchEffect(async () => {
-//  const client = import.meta.client;
-//  if (client) {
-//    const hehe2 = new Worker(
-//      new URL("~/utils/worker/battlesProcessorWorker", import.meta.url),
-//      {
-//        type: "module",
-//      },
-//    );
-//    hehe2.postMessage("eheheheh");
-//    hehe2.postMessage({
-//      type: "battle",
-//      requestParams: {
-//        map: null,
-//        users: null,
-//        limit: null,
-//        battleType: null,
-//      },
-//    } satisfies BattleProcessorParams);
-//    consola.log("loaded", hehe2);
-//    hehe2.onmessage = (event) => {
-//      console.log(event);
-//    };
-//  }
-//});
+const results = ref<BattlesProcessorResponse>();
+
+
+
 
 const onSubmit = form.handleSubmit((values) => {
   console.log("Form submitted!", values);
@@ -79,20 +59,25 @@ const onSubmit = form.handleSubmit((values) => {
         battleType: null,
         map: map ?? null,
         users: users?.flatMap((v) => v.id) ?? null,
-        limit: 500,
+        limit: 1000,
       },
     })
     .then((v) => {
       console.log("worker result is ", v);
+      results.value = v;
     });
 });
+
+
+const color = (d: StackedBarDataRecord<unknown>, i: number) =>
+  ["#04c0c7", "#5144d3", "#da348f"][i];
 </script>
 
 <template>
   <article class="flex flex-1 flex-col items-center p-4">
-    <div class="flex w-full flex-1 flex-col md:flex-row md:justify-center">
+    <div class="flex w-full flex-1 flex-col xl:flex-row xl:justify-center">
       <form
-        class="mb-4 mt-4 flex h-max flex-col gap-y-4 rounded-2xl bg-surface p-4 sm:mt-10 md:w-96 md:shadow-md"
+        class="mb-4 mt-4 flex h-max flex-col gap-y-4 md:max-w-96 rounded-2xl xl:bg-surface p-4 sm:mt-10 xl:w-96 xl:shadow-md"
         @submit="onSubmit"
       >
         <legend class="mb-2 text-lg font-bold">Filter</legend>
@@ -101,7 +86,29 @@ const onSubmit = form.handleSubmit((values) => {
         <Button type="submit" variant="outline">Update</Button>
       </form>
 
-      <div class="flex-1 md:max-w-[56rem]">Other content ehe</div>
+      <div class="flex-1 min-w-0 xl:max-w-[56rem] py-10 xl:pl-20 pr-5">
+
+        <template v-if="results !== undefined">
+          <LazyGeneralWinrateChart  :data="results.data.factionWinrate"></LazyGeneralWinrateChart>
+          <LazyGeneralAverageOsToTimeChart :data="results.data.osToTime" ></LazyGeneralAverageOsToTimeChart>
+          <LazyGeneralAverageOsToTimeChart :data="results.data.osToTime2" ></LazyGeneralAverageOsToTimeChart>
+          <LazyGeneralAverageOsToTimeChart :data="results.data.osToTime3" ></LazyGeneralAverageOsToTimeChart>
+          <!-- <BarChart -->
+          <!--   :data="factionWinrate!" -->
+          <!--   index="name" -->
+          <!--   :categories="['ratio']" -->
+          <!--   :colors="color" -->
+          <!--   :y-formatter=" -->
+          <!--     (tick, i) => { -->
+          <!--       return typeof tick === 'number' -->
+          <!--         ? `$ ${new Intl.NumberFormat('us').format(tick).toString()}` -->
+          <!--         : ''; -->
+          <!--     } -->
+          <!--   " -->
+          <!-- > -->
+          <!-- </BarChart> -->
+        </template>
+      </div>
     </div>
   </article>
 </template>
