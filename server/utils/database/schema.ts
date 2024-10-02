@@ -1,4 +1,4 @@
-import { relations } from "drizzle-orm";
+import { and, eq, relations } from "drizzle-orm";
 import {
   sqliteTable,
   text,
@@ -26,9 +26,19 @@ export const battleTable = sqliteTable(
     playerCount: integer("player-count").notNull(),
     battleType: text("battle-type").notNull(),
     preset: text("preset"),
+    averageOs: integer("average-os"),
   },
   (table) => {
     return {
+      normalStartTimeIndexWithMapId: index(
+        "normal-start-time-with-map-id-index",
+      )
+        .on(table.mapId, table.startTime)
+        .where(and(eq(table.endedNormally, true), eq(table.hasBots, false))!),
+      normalStartTimeIndex: index("normal-Start-time-index")
+        .on(table.startTime)
+        .where(and(eq(table.endedNormally, true), eq(table.hasBots, false))!),
+
       startTimeIndexWithMapId: index("start-time-with-map-id-index").on(
         table.endedNormally,
         table.hasBots,
