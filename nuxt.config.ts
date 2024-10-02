@@ -8,6 +8,7 @@ export default defineNuxtConfig({
     "shadcn-nuxt",
     "@nuxt/fonts",
     "@nuxt/image",
+    "nuxt-echarts",
   ],
   shadcn: {
     prefix: "",
@@ -42,6 +43,11 @@ export default defineNuxtConfig({
         dir: "./drizzle",
       },
     ],
+  },
+  echarts: {
+    charts: ['BarChart', 'MapChart', "LineChart", "ScatterChart"],
+    components: ["DatasetComponent", "TitleComponent", "GridComponent", "TooltipComponent"],
+    //renderer: ['svg', 'canvas']
   },
   vite: {
     optimizeDeps: {
