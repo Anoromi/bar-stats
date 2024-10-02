@@ -17,7 +17,7 @@ export const buttonVariants = cva(
         ghost: "hover:bg-primary/[0.08]",
         link: "text-primary underline-offset-4 hover:underline",
         elevated:
-          "bg-foreground/5 bg-transparent shadow-sm shadow-surface hover:bg-emphasis hover:text-emphasis-foreground hover:shadow-none active:bg-emphasis/50 active:text-foreground active:shadow-none",
+          "bg-foreground/5 bg-transparent shadow-sm dark:bg-surface-high dark:hover:bg-emphasis dark:active:bg-emphasis/50 hover:bg-emphasis hover:text-emphasis-foreground hover:shadow-none active:bg-emphasis/50 active:text-foreground active:shadow-none",
       },
       size: {
         default: "h-9 px-4 py-2",
