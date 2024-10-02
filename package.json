@@ -23,17 +23,20 @@
     "clsx": "^2.1.1",
     "consola": "^3.2.3",
     "drizzle-orm": "^0.33.0",
+    "echarts": "^5.5.1",
     "nuxt": "^3.13.2",
+    "nuxt-echarts": "^0.2.3",
     "radix-vue": "^1.9.6",
     "shadcn-nuxt": "^0.10.4",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "vee-validate": "^4.13.2",
-    "zod": "^3.23.8",
-    "vue": "3.5.9"
+    "vue": "3.5.9",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@eslint/js": "^9.11.1",
+    "@nuxt/devtools": "^1.5.1",
     "@nuxt/eslint-config": "^0.5.7",
     "@nuxtjs/eslint-module": "^4.1.0",
     "@nuxtjs/tailwindcss": "^6.12.1",
@@ -48,5 +51,6 @@
     "prettier-plugin-tailwindcss": "^0.6.8",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.7.0"
-  }
+  },
+  "packageManager": "pnpm@9.5.0+sha1.8c155dc114e1689d18937974f6571e0ceee66f1d"
 }
