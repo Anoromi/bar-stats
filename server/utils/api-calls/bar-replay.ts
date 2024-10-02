@@ -112,7 +112,7 @@ const barReplaySchema = z.object({
 
 export type BarReplay = z.infer<typeof barReplaySchema>;
 
-export async function getBarReplay(id: string) {
+export async function getBarReplay(id: string) : Promise<BarReplay> {
   const result = await $fetch(`https://api.bar-rts.com/replays/${id}`, {
     retry: 4,
     retryDelay: 1000,
