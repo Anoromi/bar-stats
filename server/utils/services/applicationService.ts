@@ -5,32 +5,45 @@ import type {
   MapEntityInsert as MapEntityInsert,
   UserToBattleTeamEntityInsert,
 } from "../database/schema";
-import { consola } from "consola";
 import type { BarReplay } from "../api-calls/bar-replay";
 
 export const SPECTATOR_TEAM_ID = -1;
 
-class ApplicationService {
+class SyncService {
   async syncDatabase() {
-    consola.log("starting");
+    console.log("starting");
     const service = new BattleService();
     const lastBattle = await service.getLastBattle();
-    consola.log("current last battle", lastBattle);
+    console.log("current last battle", lastBattle);
     let boundary: Date;
     if (lastBattle === null) {
       const now = new Date();
-      boundary = new Date(now.getTime() - 1000 * 60 * 60 * 6);
+      boundary = new Date(now.getTime() - 1000 * 60 * 60 * 24 * 1);
     } else {
       boundary = lastBattle.startTime;
     }
     let page = 1;
     while (true) {
-      const requests = (await getBarReplayList(page, 20)).data
+      const requests = (
+        await Promise.all([
+          getBarReplayList(page++, 20),
+          getBarReplayList(page++, 20),
+          getBarReplayList(page++, 20),
+          getBarReplayList(page++, 20),
+          getBarReplayList(page++, 20),
+          getBarReplayList(page++, 20),
+          getBarReplayList(page++, 20),
+          getBarReplayList(page++, 20),
+          getBarReplayList(page++, 20),
+          getBarReplayList(page++, 20),
+          getBarReplayList(page++, 20),
+        ])
+      )
+        .flatMap((v) => v.data)
         .map((v) => v.id)
         .map((v) => getBarReplay(v));
-      page++;
 
-      consola.log("page", page);
+      console.log("page", page);
       let replays = await Promise.all(requests);
 
       replays = replays.filter(
@@ -38,11 +51,11 @@ class ApplicationService {
       );
 
       if (replays.length === 0) {
-        consola.log("empty replays");
+        console.log("empty replays");
         break;
       }
 
-      //consola.log('min', min(replays, (a, b) => new Date(a.startTime).getTime() - new  Date(b.startTime).getTime()))
+      //console.log('min', min(replays, (a, b) => new Date(a.startTime).getTime() - new  Date(b.startTime).getTime()))
 
       await this.addMaps(replays);
 
@@ -68,11 +81,12 @@ class ApplicationService {
               ?.allyTeamId,
             preset: replay.preset,
             battleType: this.generateBattleType(replay),
+            averageOs: this.calculaceAverageOs(replay),
           }) satisfies BattleEntityInsert,
       );
 
       //logger.log('hehe', )
-      //consola.info(replayInsert.map((v) => v.id));
+      //console.info(replayInsert.map((v) => v.id));
       if (replayInsert.length > 0)
         await db.insert(battleTable).values(replayInsert).onConflictDoNothing();
 
@@ -91,8 +105,8 @@ class ApplicationService {
         },
       ]);
 
-      consola.log("add teams");
-      //consola.log(allyTeams);
+      console.log("add teams");
+      //console.log(allyTeams);
 
       if (allyTeams.length > 0)
         await db
@@ -100,7 +114,7 @@ class ApplicationService {
           .values(allyTeams)
           .onConflictDoNothing();
 
-      consola.log("added teams");
+      console.log("added teams");
 
       // add users to teams
       const usersToTeams = replays.flatMap((replay) => {
@@ -140,8 +154,8 @@ class ApplicationService {
         ];
       });
 
-      consola.log("add users");
-      //consola.log(usersToTeams);
+      console.log("add users");
+      //console.log(usersToTeams);
 
       if (usersToTeams.length > 0)
         await db
@@ -163,7 +177,7 @@ class ApplicationService {
       ).map((v) => [v.mapId, v]),
     );
 
-    //consola.log('mapsInDb', [...replayMapsInDb]);
+    //console.log('mapsInDb', [...replayMapsInDb]);
     const newMaps = new Map<number, BarReplay>();
     for (const [mapId, replay] of allReplayMaps) {
       if (!replayMapsInDb.has(mapId)) {
@@ -188,7 +202,7 @@ class ApplicationService {
         ),
       );
 
-    //consola.log("insert universal maps", universalMaps);
+    //console.log("insert universal maps", universalMaps);
     const insertedUniversalMaps = neededUniversalMaps.filter((v) =>
       universalMapsInDb.every((x) => v.name != x.name),
     );
@@ -205,11 +219,11 @@ class ApplicationService {
         ),
       );
 
-    consola.log(
-      "newMaps",
-      [...newMaps].map((v) => v[1].Map),
-    );
-    //consola.log("newUniversalMaps", dbUniversalMaps);
+    //console.log(
+    //  "newMaps",
+    //  [...newMaps].map((v) => v[1].Map),
+    //);
+    //console.log("newUniversalMaps", dbUniversalMaps);
     // insert new universal maps
 
     const createdUniversalMapsMap = new Map(
@@ -217,7 +231,7 @@ class ApplicationService {
     );
 
     const newMapsInsert = [...newMaps.values()].map((replay) => {
-      //consola.log(
+      //console.log(
       //  getUniversalMapName(replay.Map.scriptName),
       //  createdUniversalMapsMap.get(getUniversalMapName(replay.Map.scriptName)),
       //);
@@ -235,11 +249,11 @@ class ApplicationService {
     // insert new maps + connect them to universalMaps
     //
 
-    //consola.log("insert new maps", newMapsInsert);
-    consola.log("new maps");
+    //console.log("insert new maps", newMapsInsert);
+    console.log("new maps");
     if (newMapsInsert.length > 0) {
       await db.insert(mapTable).values(newMapsInsert);
-      //consola.log("inserting", newMapsInsert);
+      //console.log("inserting", newMapsInsert);
     }
   }
 
@@ -248,8 +262,23 @@ class ApplicationService {
       return team.Players.length.toString();
     }).join("v");
   }
+
+  private calculaceAverageOs(replay: BarReplay) {
+    let sum = 0;
+    let playerCount = 0;
+    for (const team of replay.AllyTeams) {
+      for (const player of team.Players) {
+        sum += player.skill ?? 0;
+        playerCount += 1;
+      }
+    }
+
+    if(playerCount === 0)
+      return 0;
+    return sum / playerCount;
+  }
 }
 
 export function useApplicationService() {
-  return new ApplicationService();
+  return new SyncService();
 }
