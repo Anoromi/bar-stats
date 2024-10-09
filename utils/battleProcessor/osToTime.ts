@@ -17,11 +17,9 @@ export function calculateAvgOsToTime(
     }
   }
 
-  console.log("sorted battles", osArr, timeArr);
 
   const smoothedTimeArr = movingMean(timeArr, meanSize);
 
-  console.log("smoothed", smoothedTimeArr);
 
   const results: [number, number][] = [];
 
@@ -59,7 +57,6 @@ function movingMean(values: number[], meanSize = 100) {
   const smoothedValues: number[] = [];
 
   for (; i < meanSize / 2 + 1; i++) {
-    console.log("sum, size", sum, meanSize / 2 + i + 1);
     const lastValueIndex = Math.floor(meanSize / 2) + i + 1
     sum += values[lastValueIndex];
     smoothedValues.push(sum / lastValueIndex);
