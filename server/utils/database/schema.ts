@@ -1,4 +1,4 @@
-import { and, eq, relations } from "drizzle-orm";
+import { and, eq, relations, sql } from "drizzle-orm";
 import {
   sqliteTable,
   text,
@@ -34,10 +34,11 @@ export const battleTable = sqliteTable(
         "normal-start-time-with-map-id-index",
       )
         .on(table.mapId, table.startTime)
-        .where(and(eq(table.endedNormally, true), eq(table.hasBots, false))!),
+        .where(sql`${table.endedNormally} = 1 AND ${table.hasBots} = 0`)
+        ,
       normalStartTimeIndex: index("normal-Start-time-index")
         .on(table.startTime)
-        .where(and(eq(table.endedNormally, true), eq(table.hasBots, false))!),
+        .where(sql`${table.endedNormally} = 1 AND ${table.hasBots} = 0`),
 
       startTimeIndexWithMapId: index("start-time-with-map-id-index").on(
         table.endedNormally,
