@@ -1,6 +1,13 @@
 import type { GetBattleQuery } from "~/server/api/battle";
 import { WorkerServer } from "../worker/core/server";
 import { calculateAvgOsToTime } from "./osToTime";
+import {
+  agglomerativeClusterize,
+  depthClusterize,
+  singleLinkCloseness,
+} from "./clusterize";
+import type { UserToBattleTeamDto } from "~/server/utils/dto/dto";
+import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 
 console.log("I'm running something");
 
@@ -17,14 +24,14 @@ function generateParams<T>(
 async function processBattleRequest(params: GetBattleQuery) {
   const battles = await fetch(
     "/api/battle?" +
-      new URLSearchParams(
-        generateParams<GetBattleQuery>(
-          ["map", params.map],
-          ["limit", params.limit?.toString()],
-          ["users", params.users?.map((v) => v.toString())],
-          ["battleType", params.battleType],
-        ),
+    new URLSearchParams(
+      generateParams<GetBattleQuery>(
+        ["map", params.map],
+        ["limit", params.limit?.toString()],
+        ["users", params.users?.map((v) => v.toString())],
+        ["battleType", params.battleType],
       ),
+    ),
     {
       headers: {
         "Content-Type": "application/json",
@@ -57,9 +64,50 @@ function processAnyMaps(battles: BattleWithPlayers[]) {
   return {};
 }
 
-function processSpecificMap(battles: BattleWithPlayers[]) {
+function cluster(battles: BattleWithPlayers[]) {
+  //const distFunction = (a: UserToBattleTeamDto, b: UserToBattleTeamDto) => {
+  //  const x = b.startPosX! - a.startPosX!;
+  //  const y = b.startPosZ! - a.startPosZ!;
+  //  return Math.sqrt(x * x + y * y);
+  //};
+  const players: UserToBattleTeamDto[] = battles.flatMap((v) => v.values);
+  const { data: clusterLabels, clusterCount } = depthClusterize(
+    players.filter(v => v.startPosX !== null && v.startPosZ !== null),
+    (value) => [value.startPosX!, value.startPosZ!],
+    //distFunction,
+    600,
+    10,
+  );
+
+  const clusteredData = clusterLabels.map(
+    (v, i) => [players[i], v] as [UserToBattleTeamDto, number],
+  );
+
+  //console.log(clusteredData.filter((v) => v === undefined));
+  //agglomerativeClusterize(
+  //  clusteredData,
+  //  clusterCount + 1,
+  //  singleLinkCloseness,
+  //  distFunction,
+  //  100,
+  //);
+  console.log('after agglomerative', clusteredData.filter(v => v[1] !== 0))
+  return { clusteredData: clusteredData.filter(v => v[1] !== 0), clusterCount };
+}
+
+function processSpecificMap(battles: BattleWithPlayers[]): {
+  teamWinrate?: Record<number, number>;
+  clusteredData?: [UserToBattleTeamDto, number][];
+  mapName: string;
+  clusterCount: number;
+} {
+  const { clusteredData, clusterCount } = cluster(battles);
   return {
     teamWinrate: calculateTeamWinrate(battles),
+    //clusteredData: players.map(v => [v, 0] as [UserToBattleTeamDto, number]),
+    clusteredData: clusteredData,
+    mapName: "supreme_isthmus_v1.8",
+    clusterCount: clusterCount,
   };
 }
 
@@ -131,6 +179,9 @@ export type BattlesProcessorResponse = {
   data: {
     factionWinrate: Record<string, number>;
     teamWinrate?: Record<number, number>;
+    clusteredData?: [UserToBattleTeamDto, number][];
+    mapName?: string;
+    clusterCount?: number;
     osToTime: [os: number, time: number][];
     osToTime2: [os: number, time: number][];
     osToTime3: [os: number, time: number][];
