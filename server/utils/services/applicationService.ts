@@ -85,10 +85,14 @@ class SyncService {
           }) satisfies BattleEntityInsert,
       );
 
-      //logger.log('hehe', )
-      //console.info(replayInsert.map((v) => v.id));
-      if (replayInsert.length > 0)
-        await db.insert(battleTable).values(replayInsert).onConflictDoNothing();
+      if (replayInsert.length > 0) {
+        await db.batch(
+          replayInsert.map(
+            (v) => db.insert(battleTable).values(v).onConflictDoNothing(),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ) as any,
+        );
+      }
 
       // add teams
       const allyTeams = replays.flatMap((replay) => [
@@ -108,11 +112,20 @@ class SyncService {
       console.log("add teams");
       //console.log(allyTeams);
 
-      if (allyTeams.length > 0)
-        await db
-          .insert(battleTeamTable)
-          .values(allyTeams)
-          .onConflictDoNothing();
+      if (allyTeams.length > 0) {
+        db.batch(
+          allyTeams.map(
+            (v) => db.insert(battleTeamTable).values(v).onConflictDoNothing(),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ) as any,
+        );
+      }
+      //if (allyTeams.length > 0)
+      //  //allyTeams.map()
+      //  await db
+      //    .insert(battleTeamTable)
+      //    .values(allyTeams)
+      //    .onConflictDoNothing();
 
       console.log("added teams");
 
@@ -157,11 +170,18 @@ class SyncService {
       console.log("add users");
       //console.log(usersToTeams);
 
-      if (usersToTeams.length > 0)
-        await db
-          .insert(userToBattleTable)
-          .values(usersToTeams)
-          .onConflictDoNothing();
+      if (usersToTeams.length > 0) {
+        await db.batch(
+          usersToTeams.map(
+            (v) => db.insert(userToBattleTable).values(v).onConflictDoNothing(),
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          ) as any,
+        );
+        //await db
+        //  .insert(userToBattleTable)
+        //  .values(usersToTeams)
+        //  .onConflictDoNothing();
+      }
     }
   }
 
@@ -206,8 +226,13 @@ class SyncService {
     const insertedUniversalMaps = neededUniversalMaps.filter((v) =>
       universalMapsInDb.every((x) => v.name != x.name),
     );
-    if (insertedUniversalMaps.length > 0)
-      await db.insert(mapTable).values(insertedUniversalMaps);
+    if (insertedUniversalMaps.length > 0) {
+      await db.batch(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        insertedUniversalMaps.map(v => db.insert(mapTable).values(v)) as any
+      )
+      //await db.insert(mapTable).values(insertedUniversalMaps);
+    }
 
     const dbUniversalMaps = await db
       .select()
@@ -252,7 +277,10 @@ class SyncService {
     //console.log("insert new maps", newMapsInsert);
     console.log("new maps");
     if (newMapsInsert.length > 0) {
-      await db.insert(mapTable).values(newMapsInsert);
+      await db.batch(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        newMapsInsert.map((v) => db.insert(mapTable).values(v)) as any,
+      );
       //console.log("inserting", newMapsInsert);
     }
   }
@@ -273,8 +301,7 @@ class SyncService {
       }
     }
 
-    if(playerCount === 0)
-      return 0;
+    if (playerCount === 0) return 0;
     return sum / playerCount;
   }
 }
