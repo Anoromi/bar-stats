@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "wasm-pack build rstar && nuxt build",
+    "preinstall": "pnpm i wasm-pack && wasm-pack build rstar",
+    "build": "nuxt build",
     "rstar:build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
