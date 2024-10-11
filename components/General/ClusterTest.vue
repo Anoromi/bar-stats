@@ -1,5 +1,4 @@
 <script setup lang="tsx">
-import { greet } from "~/rstar/pkg/rstar";
 import { depthClusterize } from "~/utils/battleProcessor/clusterize";
 import { KDTree } from "~/utils/other/kdtree";
 
@@ -17,9 +16,11 @@ onNuxtReady(() => {
     [11, 11],
     [11, 12],
   ];
-  if (import.meta.client) {
-    greet()
-  }
+  //if (import.meta.client) {
+  //  import("~/rstar/pkg/rstar").then((v) => {
+  //    v.greet();
+  //  });
+  //}
 
   const tree = new KDTree(points.value, (v) => v);
   console.log(
@@ -61,8 +62,9 @@ const options = computed<ECOption>(() => {
       text: "Hello there",
     },
     xAxis: {},
-    yAxis: {},
-
+    yAxis: {
+      type: "value",
+    },
     series: clustered.value.map((cluster) => {
       return {
         type: "scatter",
@@ -71,7 +73,13 @@ const options = computed<ECOption>(() => {
     }),
   };
 });
+
+watchEffect(() => {
+  console.log(options.value);
+});
 </script>
 <template>
-  <VChart :option="options" class="h-[400px]"></VChart>
+  <div>
+    <LazyVChart :option="options" class="h-[400px]"></LazyVChart>
+  </div>
 </template>
