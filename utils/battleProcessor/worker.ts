@@ -1,15 +1,10 @@
 import type { GetBattleQuery } from "~/server/api/battle";
 import { WorkerServer } from "../worker/core/server";
 import { calculateAvgOsToTime } from "./osToTime";
-import {
-  agglomerativeClusterize,
-  depthClusterize,
-  singleLinkCloseness,
-} from "./clusterize";
+import { depthClusterize } from "./clusterize";
 import type { UserToBattleTeamDto } from "~/server/utils/dto/dto";
 import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 
-console.log("I'm running something");
 
 function generateParams<T>(
   ...values: [keyof T, string | unknown | null | undefined][]
@@ -24,14 +19,14 @@ function generateParams<T>(
 async function processBattleRequest(params: GetBattleQuery) {
   const battles = await fetch(
     "/api/battle?" +
-    new URLSearchParams(
-      generateParams<GetBattleQuery>(
-        ["map", params.map],
-        ["limit", params.limit?.toString()],
-        ["users", params.users?.map((v) => v.toString())],
-        ["battleType", params.battleType],
+      new URLSearchParams(
+        generateParams<GetBattleQuery>(
+          ["map", params.map],
+          ["limit", params.limit?.toString()],
+          ["users", params.users?.map((v) => v.toString())],
+          ["battleType", params.battleType],
+        ),
       ),
-    ),
     {
       headers: {
         "Content-Type": "application/json",
@@ -71,13 +66,15 @@ function cluster(battles: BattleWithPlayers[]) {
   //  return Math.sqrt(x * x + y * y);
   //};
   const players: UserToBattleTeamDto[] = battles.flatMap((v) => v.values);
+  console.time('clusterize')
   const { data: clusterLabels, clusterCount } = depthClusterize(
-    players.filter(v => v.startPosX !== null && v.startPosZ !== null),
+    players.filter((v) => v.startPosX !== null && v.startPosZ !== null),
     (value) => [value.startPosX!, value.startPosZ!],
     //distFunction,
     600,
-    10,
+    20,
   );
+  console.timeEnd('clusterize')
 
   const clusteredData = clusterLabels.map(
     (v, i) => [players[i], v] as [UserToBattleTeamDto, number],
@@ -91,8 +88,14 @@ function cluster(battles: BattleWithPlayers[]) {
   //  distFunction,
   //  100,
   //);
-  console.log('after agglomerative', clusteredData.filter(v => v[1] !== 0))
-  return { clusteredData: clusteredData.filter(v => v[1] !== 0), clusterCount };
+  console.log(
+    "after agglomerative",
+    clusteredData.filter((v) => v[1] !== 0),
+  );
+  return {
+    clusteredData: clusteredData,//.filter((v) => v[1] !== 0),
+    clusterCount,
+  };
 }
 
 function processSpecificMap(battles: BattleWithPlayers[]): {

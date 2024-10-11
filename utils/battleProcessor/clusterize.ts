@@ -43,8 +43,15 @@ export function depthClusterize<Point>(
       const [bx, by] = pointExtract(b);
       return Math.sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
     };
-    const neighbors = kdtree.rangeSearch([i, p], eps, (a, b) => a[0] === b[0]);
-    //const neighbors = rangeQuery(data, distance, p, eps);
+    const neighbors = kdtree.rangeSearch([i, p], eps, () => false //(a, b) => a[0] === b[0]
+                                        );
+    //const neighbors2 = rangeQuery(data, distance, p, eps);
+    //console.assert(
+    //  neighbors2.every((x) => neighbors.some((y) => x[0] === y[0])),
+    //  neighbors,
+    //  neighbors2,
+    //  p
+    //);
     if (neighbors.length < minPts) {
       labels[i] = NOISE_LABEL;
       continue;
@@ -66,7 +73,11 @@ export function depthClusterize<Point>(
         continue;
       }
       labels[qIndex] = label;
-      const qNeighbors = kdtree.rangeSearch([qIndex, q], eps, (a, b) => a[0] === b[0])
+      const qNeighbors = kdtree.rangeSearch(
+        [qIndex, q],
+        eps,
+        (a, b) => a[0] === b[0],
+      );
       //const qNeighbors = rangeQuery(data, distance, q, eps);
       //console.log("qNeighbors", qNeighbors);
       if (qNeighbors.length >= minPts) {
