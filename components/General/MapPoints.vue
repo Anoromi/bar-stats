@@ -21,20 +21,20 @@ const labels = computed(() => {
 });
 
 function randColor() {
-  const r = Math.round(Math.random() * 255)
-  const g =  Math.round(Math.random() * 255)
-  const b = Math.round(Math.random() * 255)  
-  return `rgba(${r}, ${g}, ${b}, 1)`
+  const r = Math.round(Math.random() * 255);
+  const g = Math.round(Math.random() * 255);
+  const b = Math.round(Math.random() * 255);
+  return `rgba(${r}, ${g}, ${b}, 1)`;
 }
 
 const COLOR_ALL = [
-  '#37A2DA',
-  '#e06343',
-  '#37a354',
-  '#b55dba',
-  '#b5bd48',
-  '#8378EA',
-  '#96BFFF'
+  "#37A2DA",
+  "#e06343",
+  "#37a354",
+  "#b55dba",
+  "#b5bd48",
+  "#8378EA",
+  "#96BFFF",
 ];
 
 watchEffect(() => {
@@ -67,7 +67,7 @@ const options = computed<ECOption>(() => {
     //    //x: 0,
     //    //y: 0,
     //    //width: 100,
-    //    //heigth: 100,
+    //    //height: 100,
     //  },
     //},
     grid: {
@@ -83,25 +83,28 @@ const options = computed<ECOption>(() => {
       map: "hehe",
       roam: true,
     },
-    series: [...labels.value.entries()].filter((v) => v[1].length > 15).map((v) => {
-      return {
-        coordinateSystem: "geo",
-        type: "scatter",
-        data: v[1].map((v) => [v.startPosX, v.startPosZ!]),
-        color: randColor()
-        //color: Math.random()
-      } as ScatterSeriesOption;
-    }),
+    series: [...labels.value.entries()]
+      //.filter((v) => v[1].length > 15)
+      .map((v) => {
+        return {
+          coordinateSystem: "geo",
+          type: "scatter",
+          data: v[1].map((v) => [v.startPosX, v.startPosZ!]),
+          color: randColor(),
+          itemStyle: {
+          borderType: 'solid',
+          borderColor: '#000',
+          borderWidth: 1
+          }
+          //color: Math.random()
+        } as ScatterSeriesOption;
+      }),
   };
 });
 </script>
 <template>
-  <VChart
-    :option="options"
-    :init-options="{
-      height: 800,
-      width: 800
-    }"
-    class="h-[800px]"
-  />
+  <VChart :option="options" :init-options="{
+    height: 800,
+    width: 800,
+  }" class="h-[800px]" />
 </template>
