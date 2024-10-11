@@ -9,6 +9,7 @@ export default defineNuxtConfig({
     "@nuxt/fonts",
     "@nuxt/image",
     "nuxt-echarts",
+    "@nuxt/test-utils/module",
   ],
   shadcn: {
     prefix: "",
@@ -17,15 +18,15 @@ export default defineNuxtConfig({
   components: [
     {
       path: "~/components/other",
-      pathPrefix: false
+      pathPrefix: false,
     },
     {
       path: "~/components",
-    }
+    },
   ],
   nitro: {
     experimental: {
-      openAPI: true
+      openAPI: true,
     },
     vercel: {
       config: {
@@ -45,14 +46,21 @@ export default defineNuxtConfig({
     ],
   },
   echarts: {
-    charts: ['BarChart', 'MapChart', "LineChart", "ScatterChart"],
-    components: ["DatasetComponent", "TitleComponent", "GridComponent", "TooltipComponent", "GraphicComponent", "GeoComponent"],
+    charts: ["BarChart", "MapChart", "LineChart", "ScatterChart"],
+    components: [
+      "DatasetComponent",
+      "TitleComponent",
+      "GridComponent",
+      "TooltipComponent",
+      "GraphicComponent",
+      "GeoComponent",
+    ],
     //renderer: ['svg', 'canvas']
   },
   vite: {
     optimizeDeps: {
-      exclude: ['vee-validate']
-    }
+      exclude: ["vee-validate"],
+    },
   },
   runtimeConfig: {
     dbURL: "http://127.0.0.1:8080",
