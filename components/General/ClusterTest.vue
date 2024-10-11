@@ -16,11 +16,11 @@ onNuxtReady(() => {
     [11, 11],
     [11, 12],
   ];
-  //if (import.meta.client) {
-  //  import("~/rstar/pkg/rstar").then((v) => {
-  //    v.greet();
-  //  });
-  //}
+  if (import.meta.client) {
+    import("~/rstar/pkg/rstar").then((v) => {
+      v.greet();
+    });
+  }
 
   const tree = new KDTree(points.value, (v) => v);
   console.log(
