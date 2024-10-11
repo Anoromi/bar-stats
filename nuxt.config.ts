@@ -1,3 +1,4 @@
+import wasm from "vite-plugin-wasm";
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
 export default defineNuxtConfig({
@@ -57,7 +58,17 @@ export default defineNuxtConfig({
     ],
     //renderer: ['svg', 'canvas']
   },
+
   vite: {
+    esbuild: {
+      supported: {
+        "top-level-await": true,
+      },
+    },
+    plugins: [wasm()],
+    worker: {
+      plugins: () => [wasm()],
+    },
     optimizeDeps: {
       exclude: ["vee-validate"],
     },
