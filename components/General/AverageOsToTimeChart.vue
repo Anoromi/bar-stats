@@ -9,9 +9,11 @@ const option = computed<ECOption>(() => ({
   },
   xAxis: {
     type: "value",
+    name: 'average os' 
   },
   yAxis: {
     type: "value",
+    name: 'time' 
   },
   series: [
     {
