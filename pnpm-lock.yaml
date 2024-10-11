@@ -56,9 +56,6 @@ importers:
       radix-vue:
         specifier: ^1.9.6
         version: 1.9.6(vue@3.5.9(typescript@5.6.2))
-      rstar:
-        specifier: file://./rstar/pkg
-        version: file:rstar/pkg
       shadcn-nuxt:
         specifier: ^0.10.4
         version: 0.10.4(magicast@0.3.5)(rollup@4.22.4)(webpack-sources@3.2.3)
@@ -4892,9 +4889,6 @@ packages:
     resolution: {integrity: sha512-vD8HJ5raRcWOyymsR6Z3o6+RzfEPCnVLMFJ6vRslO1jt4LO6dUo5Qnpg7y4RkZFM2DMe3WUirkI5c16onjrc6A==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
-
-  rstar@file:rstar/pkg:
-    resolution: {directory: rstar/pkg, type: directory}
 
   run-applescript@7.0.0:
     resolution: {integrity: sha512-9by4Ij99JUr/MCFBUkDKLWK3G9HVXmabKz9U5MlIAIuvuzkiOicRYs8XJLxX+xahD+mLiiCYDqF9dKAgtzKP1A==}
@@ -11055,8 +11049,6 @@ snapshots:
       '@rollup/rollup-win32-ia32-msvc': 4.22.4
       '@rollup/rollup-win32-x64-msvc': 4.22.4
       fsevents: 2.3.3
-
-  rstar@file:rstar/pkg: {}
 
   run-applescript@7.0.0: {}
 

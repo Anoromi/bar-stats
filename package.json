@@ -3,9 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "preinstall": "pnpm i wasm-pack && wasm-pack build rstar",
-    "build": "nuxt build",
-    "rstar:build": "nuxt build",
+    "build": "wasm-pack build --release rstar && nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -29,7 +27,6 @@
     "nuxt": "^3.13.2",
     "nuxt-echarts": "^0.2.3",
     "radix-vue": "^1.9.6",
-    "rstar": "file://./rstar/pkg",
     "shadcn-nuxt": "^0.10.4",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
