@@ -31,8 +31,6 @@ function createNode<T>(
     node.leftChildren = createNode(node, left, otherComparator, comparator);
   if (right.length > 0)
     node.rightChildren = createNode(node, right, otherComparator, comparator);
-  //console.log("still running");
-  //console.count("createNode");
   return node;
 }
 
@@ -44,18 +42,18 @@ export class KDTree<T> {
   compareX: Comparator<T> = (a, b) =>
     this.pointExtract(a)[0] - this.pointExtract(b)[0];
   compareY: Comparator<T> = (a, b) =>
-    this.pointExtract(a)[0] - this.pointExtract(b)[0];
+    this.pointExtract(a)[1] - this.pointExtract(b)[1];
 
   constructor(data: T[], pointExtract: (data: T) => [number, number]) {
     this.pointExtract = pointExtract;
-    //console.log("extract", pointExtract, pointExtract(data[0]));
 
-    this.root = createNode(
-      null,
-      data,
-      (a: T, b: T) => pointExtract(a)[0] - pointExtract(b)[0],
-      (a: T, b: T) => pointExtract(a)[1] - pointExtract(b)[1],
-    );
+    if (data.length > 0)
+      this.root = createNode(
+        null,
+        data,
+        (a: T, b: T) => pointExtract(a)[0] - pointExtract(b)[0],
+        (a: T, b: T) => pointExtract(a)[1] - pointExtract(b)[1],
+      );
   }
 
   private comparatorByAxis(index: number) {
@@ -96,25 +94,40 @@ export class KDTree<T> {
     return index - 1;
   }
 
+  printTree() {
+    this.printNode(this.root, 0);
+  }
+
+  private printNode(node: Node<T> | null, offset: number) {
+    const spaces = " ".repeat(offset);
+    if (node === null) {
+      console.log(spaces, "null");
+      return;
+    }
+    console.log(spaces, node.value);
+    this.printNode(node.leftChildren, offset + 4);
+    this.printNode(node.rightChildren, offset + 4);
+  }
+
   rangeSearch(
     searched: T,
     eps: number,
     equality: (a: T, b: T) => boolean,
   ): T[] {
-    return this.nodeRangeSearch(this.root, searched, eps, equality);
+    return this.nodeRangeSearch(this.root, searched, eps, 0, equality);
   }
 
   private nodeRangeSearch(
     rootNode: Node<T> | null,
     searched: T,
     eps: number,
+    initialComparatorKind: number,
     equal: (a: T, b: T) => boolean,
   ): T[] {
     if (rootNode === null) return [];
-    //console.log("starining range search");
     let previousNode: Node<T> | null = null;
     let node: Node<T> | null = rootNode;
-    let comparatorKind = 0;
+    let comparatorKind = initialComparatorKind;
     while (node !== null) {
       previousNode = node;
       const comparator = this.comparatorByAxis(comparatorKind);
@@ -130,6 +143,7 @@ export class KDTree<T> {
 
     comparatorKind = this.previousAxis(comparatorKind);
     node = previousNode;
+    previousNode = null;
     const points: T[] = [];
     while (node !== rootNode.parent && node !== null) {
       if (
@@ -139,41 +153,43 @@ export class KDTree<T> {
         points.push(node.value);
 
       const comparator = this.comparatorByAxis(comparatorKind);
-      const comp = comparator(searched, node.value);
       const axisDistance = this.distanceByAxis(
         comparatorKind,
         searched,
         node.value,
       );
       let internalValues: T[] | null = null;
-      if (comp <= 0 && axisDistance < eps) {
+      if (previousNode !== node.rightChildren && axisDistance <= eps) {
         // came from left
         internalValues = this.nodeRangeSearch(
           node.rightChildren,
           searched,
           eps,
+          this.nextAxis(comparatorKind),
           equal,
         );
-      } else if (comp > 0 && axisDistance < eps) {
+      } else if (previousNode !== node.leftChildren && axisDistance <= eps) {
         // came from right
         internalValues = this.nodeRangeSearch(
           node.leftChildren,
           searched,
           eps,
+          this.nextAxis(comparatorKind),
           equal,
         );
       }
       if (internalValues !== null) {
         points.push(...internalValues);
       }
+      previousNode = node;
       node = node.parent;
-      //console.log("running");
+      comparatorKind = this.previousAxis(comparatorKind);
     }
     return points;
   }
 }
 
-const medianMaxValues = 40;
+const medianMaxValues = 10000;
 
 function closestMean<T>(values: T[], compare: (a: T, b: T) => number) {
   if (values.length < 0) return -1;
@@ -184,6 +200,5 @@ function closestMean<T>(values: T[], compare: (a: T, b: T) => number) {
     if (!selectedItems.includes(i)) selectedItems.push(i);
   }
   selectedItems.sort((a, b) => compare(values[a], values[b]));
-  //console.log(selectedItems.length, selectedItems, values);
   return selectedItems[Math.floor(selectedItems.length / 2)];
 }
