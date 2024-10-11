@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "wasm-pack build --release rstar && nuxt build",
+    "rstar:build": "wasm-pack build --release --no-pack rstar && node other/cleanRStar.js",
+    "build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
