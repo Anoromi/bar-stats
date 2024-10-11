@@ -3,7 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "nuxt build",
+    "build": "wasm-pack build rstar && nuxt build",
+    "rstar:build": "nuxt build",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
@@ -27,6 +28,7 @@
     "nuxt": "^3.13.2",
     "nuxt-echarts": "^0.2.3",
     "radix-vue": "^1.9.6",
+    "rstar": "file://./rstar/pkg",
     "shadcn-nuxt": "^0.10.4",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
@@ -55,7 +57,9 @@
     "prettier-plugin-tailwindcss": "^0.6.8",
     "typescript": "^5.6.2",
     "typescript-eslint": "^8.7.0",
-    "vitest": "^2.1.2"
+    "vite-plugin-wasm": "^3.3.0",
+    "vitest": "^2.1.2",
+    "wasm-pack": "^0.13.0"
   },
   "packageManager": "pnpm@9.5.0+sha1.8c155dc114e1689d18937974f6571e0ceee66f1d"
 }
