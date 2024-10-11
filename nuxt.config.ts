@@ -1,4 +1,4 @@
-import wasm from "vite-plugin-wasm";
+import topLevelAwait from "vite-plugin-top-level-await";
 // https://nuxt.com/docs/api/configuration/nuxt-config
 
 export default defineNuxtConfig({
@@ -61,14 +61,21 @@ export default defineNuxtConfig({
 
   vite: {
     esbuild: {
-      supported: {
-        "top-level-await": true,
-      },
+      //target: 'esnext'
+      //target: ''
+      //supported: {
+      //  "top-level-await": true,
+      //},
     },
-    plugins: [wasm()],
-    worker: {
-      plugins: () => [wasm()],
-    },
+    plugins: [
+      topLevelAwait({
+        promiseExportName: "__tla",
+        promiseImportName: (i) => `__tla_${i}`,
+      }),
+    ],
+    //worker: {
+    //  plugins: () => [wasm(), topLevelAwait()],
+    //},
     optimizeDeps: {
       exclude: ["vee-validate"],
     },
