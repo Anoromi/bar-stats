@@ -9,7 +9,6 @@ import type {
 import { useClientWorker } from "~/utils/worker/useClientWorker";
 import { toast } from "~/components/ui/toast";
 
-
 const formSchema = toTypedSchema(
   z.object({
     users: z
@@ -78,7 +77,7 @@ const onSubmit = form.handleSubmit((values) => {
       </form>
 
       <div class="min-w-0 flex-1 py-10 pr-5 xl:max-w-[56rem] xl:pl-20">
-        <GeneralClusterTest></GeneralClusterTest>
+          <LazyGeneralClusterTest></LazyGeneralClusterTest>
         <template v-if="results !== undefined">
           <LazyGeneralMapPoints v-if="results.data.clusteredData !== undefined" :data="results.data.clusteredData!"
             :map="results.data.mapName!"></LazyGeneralMapPoints>
@@ -86,20 +85,6 @@ const onSubmit = form.handleSubmit((values) => {
           <LazyGeneralAverageOsToTimeChart :data="results.data.osToTime"></LazyGeneralAverageOsToTimeChart>
           <LazyGeneralAverageOsToTimeChart :data="results.data.osToTime2"></LazyGeneralAverageOsToTimeChart>
           <LazyGeneralAverageOsToTimeChart :data="results.data.osToTime3"></LazyGeneralAverageOsToTimeChart>
-          <!-- <BarChart -->
-          <!--   :data="factionWinrate!" -->
-          <!--   index="name" -->
-          <!--   :categories="['ratio']" -->
-          <!--   :colors="color" -->
-          <!--   :y-formatter=" -->
-          <!--     (tick, i) => { -->
-          <!--       return typeof tick === 'number' -->
-          <!--         ? `$ ${new Intl.NumberFormat('us').format(tick).toString()}` -->
-          <!--         : ''; -->
-          <!--     } -->
-          <!--   " -->
-          <!-- > -->
-          <!-- </BarChart> -->
         </template>
       </div>
     </div>
