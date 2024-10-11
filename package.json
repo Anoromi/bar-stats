@@ -32,6 +32,7 @@
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
     "vee-validate": "^4.13.2",
+    "vite-plugin-top-level-await": "^1.4.4",
     "vue": "3.5.9",
     "zod": "^3.23.8"
   },
