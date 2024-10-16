@@ -35,7 +35,7 @@ const barReplaySchema = z.object({
   }),
   gameSettings: z.object({
     ranked_game: z.string().refine((v) => v === "0" || v === "1", {
-      message: "Value shoud be either 0 or 1",
+      message: "Value should be either 0 or 1",
     }),
   }),
   preset: z.string().nullish(),
