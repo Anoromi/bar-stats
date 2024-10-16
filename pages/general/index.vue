@@ -20,6 +20,7 @@ const formSchema = toTypedSchema(
       .array()
       .default([]),
     map: z.string().optional(),
+    limit: z.enum(["1000", "3000"]).default('1000'),
   }),
 );
 
@@ -69,10 +70,11 @@ const onSubmit = form.handleSubmit((values) => {
     <div class="flex w-full flex-1 flex-col xl:flex-row xl:justify-center">
       <form
         class="mb-4 mt-4 flex h-max flex-col gap-y-4 rounded-2xl p-4 sm:mt-10 md:max-w-96 xl:w-96 xl:bg-surface xl:shadow-md"
-        @submit="onSubmit">
+        @submit="onSubmit"
         <legend class="mb-2 text-lg font-bold">Filter</legend>
         <GeneralMapSelector name="map"></GeneralMapSelector>
         <GeneralUserSelector name="users"></GeneralUserSelector>
+        <GeneralLimitsInput name="limit"></GeneralLimitsInput>
         <Button type="submit" variant="outline">Update</Button>
       </form>
 
