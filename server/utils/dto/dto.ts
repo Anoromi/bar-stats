@@ -25,3 +25,16 @@ export type UserDto = {
   id: number[];
   countryCode: string | null;
 };
+
+export type ProcessingUser = Pick<
+  UserToBattleTeamDto,
+  | "rank"
+  | "skill"
+  | "startPosX"
+  | "startPosZ"
+  | "battleTeamBattleId"
+  | "battleTeamNumber"
+  | "userId"
+  | "faction"
+>;
+
