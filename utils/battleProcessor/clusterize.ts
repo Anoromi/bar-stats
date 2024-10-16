@@ -1,35 +1,52 @@
-import { KDTree } from "../other/kdtree";
-
 const NOISE_LABEL = 0;
 
-function constructNeighbors<Point>(
+export async function depthClusterize<Point>(
   data: Point[],
-  distFunc: (a: Point, b: Point) => number,
+  pointExtract: (value: Point) => { x: number; y: number; battleIndex: number },
   eps: number,
-) {
-  const currentNeighbors: number[][] = [];
-  for (let i = 0; i < data.length; i++) {
-    const ip = data[i];
-    for (let j = 0; j < data.length; j++) {
-      const jp = data[j];
-    }
-  }
+  minPts: number,
+): Promise<{
+  data: number[];
+  clusterCount: number;
+}> {
+  const { depth_clusterize, BarPartialPlayerData } = await import(
+    "~/rstar/pkg/bar_stats_wasm"
+  );
+
+  const transformedPoints = data.map((v) => {
+    const point = pointExtract(v);
+    return new BarPartialPlayerData(point.battleIndex, point.x, point.y);
+  });
+
+  const clusters = depth_clusterize(transformedPoints, eps, minPts);
+
+  const result = {
+    data: Array.from(clusters.labels),
+    clusterCount: clusters.cluster_count,
+  };
+  clusters.free()
+  return result;
 }
 
-export function depthClusterize<Point>(
+export async function depthClusterizeJS<Point>(
   data: Point[],
   pointExtract: (value: Point) => [number, number],
   eps: number,
   minPts: number,
-): {
+): Promise<{
   data: number[];
   clusterCount: number;
-} {
-  //const distance =
-  const kdtree = new KDTree(
-    data.map((v, i) => [i, v] as const),
-    (v) => pointExtract(v[1]),
-  );
+}> {
+  const { SpatialIndex } = await import("~/rstar/pkg/bar_stats_wasm");
+  const kdtree = new SpatialIndex();
+  for (let i = 0; i < data.length; i++) {
+    const [x, y] = pointExtract(data[i]);
+    kdtree.add(i, x, y);
+  }
+  //const kdtree = new KDTree(
+  //  data.map((v, i) => [i, v] as const),
+  //  (v) => pointExtract(v[1]),
+  //);
   const labels = new Array<number>(data.length).fill(-1);
   let labelCount = 1;
 
@@ -38,13 +55,13 @@ export function depthClusterize<Point>(
     if (labels[i] !== -1) {
       continue;
     }
-    const distance = (a: Point, b: Point) => {
-      const [ax, ay] = pointExtract(a);
-      const [bx, by] = pointExtract(b);
-      return Math.sqrt((bx - ax) * (bx - ax) + (by - ay) * (by - ay));
-    };
-    const neighbors = kdtree.rangeSearch([i, p], eps, () => false //(a, b) => a[0] === b[0]
-                                        );
+    const pPoint = pointExtract(p);
+    const neighbors = Array.from(kdtree.range_query(pPoint[0], pPoint[1], eps));
+    //const neighbors = kdtree.range_query(
+    //  [i, p],
+    //  eps,
+    //  () => false, //(a, b) => a[0] === b[0]
+    //);
     //const neighbors2 = rangeQuery(data, distance, p, eps);
     //console.assert(
     //  neighbors2.every((x) => neighbors.some((y) => x[0] === y[0])),
@@ -59,12 +76,13 @@ export function depthClusterize<Point>(
 
     const label = labelCount++;
     labels[i] = label;
-    const seeds = neighbors.filter((v) => v[0] !== i);
+    const seeds = neighbors.filter((v) => v !== i);
     let j = 0;
     console.log("clustering", i);
     while (j < seeds.length) {
       //console.log("seeds", i, seeds);
-      const [qIndex, q] = seeds[j];
+      const qIndex = seeds[j];
+      const q = data[qIndex];
       if (labels[qIndex] === NOISE_LABEL) {
         labels[qIndex] = label;
       } else if (labels[qIndex] > 0) {
@@ -73,15 +91,17 @@ export function depthClusterize<Point>(
         continue;
       }
       labels[qIndex] = label;
-      const qNeighbors = kdtree.rangeSearch(
-        [qIndex, q],
-        eps,
-        (a, b) => a[0] === b[0],
-      );
+      const qPoint = pointExtract(q);
+      const qNeighbors = kdtree.range_query(qPoint[0], qPoint[1], eps);
+      //const qNeighbors = kdtree.rangeSearch(
+      //  [qIndex, q],
+      //  eps,
+      //  (a, b) => a[0] === b[0],
+      //);
       //const qNeighbors = rangeQuery(data, distance, q, eps);
       //console.log("qNeighbors", qNeighbors);
       if (qNeighbors.length >= minPts) {
-        seeds.push(...qNeighbors.filter((v) => labels[v[0]] > 0));
+        seeds.push(...qNeighbors.filter((v) => labels[v] > 0));
       }
       j++;
     }
