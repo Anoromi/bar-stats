@@ -1,5 +1,5 @@
 [package]
-name = "rstar"
+name = "bar-stats-wasm"
 version = "0.1.0"
 authors = ["Anoromi <and.zagorulko@gmail.com>"]
 edition = "2018"
