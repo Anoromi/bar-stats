@@ -1,8 +1,6 @@
-import { between, eq, gt, inArray, sql } from "drizzle-orm";
+import { between, eq, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import type { Grouped } from "../array/groupBy";
-import { groupByMapped } from "../array/groupBy";
-import { lazy } from "../lazy";
 
 export const getMapsQuery = (ids: number[]) => {
   const child = alias(mapTable, "child");
@@ -28,8 +26,11 @@ export const findMapByNameQuery = (mapName: string) => {
 
 export const findMapByNameLikeQuery = (mapName: string) => {
   const maxValue = mapName + String.fromCodePoint(1114111);
-  return db.select().from(mapTable).limit(10)
-  .where(between(mapTable.name, mapName, maxValue));
+  return db
+    .select()
+    .from(mapTable)
+    .limit(10)
+    .where(between(mapTable.name, mapName, maxValue));
 };
 
 export class MapService {
