@@ -101,6 +101,10 @@ class SyncService {
             ({
               battleId: replay.id,
               teamNumber: team.allyTeamId,
+              top: team.startBox?.top,
+              bottom: team.startBox?.bottom,
+              left: team.startBox?.left,
+              right: team.startBox?.right,
             }) satisfies BattleTeamEntityInsert,
         ),
         {
@@ -229,8 +233,8 @@ class SyncService {
     if (insertedUniversalMaps.length > 0) {
       await db.batch(
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        insertedUniversalMaps.map(v => db.insert(mapTable).values(v)) as any
-      )
+        insertedUniversalMaps.map((v) => db.insert(mapTable).values(v)) as any,
+      );
       //await db.insert(mapTable).values(insertedUniversalMaps);
     }
 
@@ -268,6 +272,8 @@ class SyncService {
         subclassOfId: createdUniversalMapsMap.get(
           getUniversalMapName(replay.Map.scriptName),
         )!.id,
+        width: replay.Map.width,
+        height: replay.Map.height
       } satisfies MapEntityInsert;
     });
 
