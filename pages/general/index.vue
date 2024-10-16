@@ -71,6 +71,7 @@ const onSubmit = form.handleSubmit((values) => {
       <form
         class="mb-4 mt-4 flex h-max flex-col gap-y-4 rounded-2xl p-4 sm:mt-10 md:max-w-96 xl:w-96 xl:bg-surface xl:shadow-md"
         @submit="onSubmit"
+      >
         <legend class="mb-2 text-lg font-bold">Filter</legend>
         <GeneralMapSelector name="map"></GeneralMapSelector>
         <GeneralUserSelector name="users"></GeneralUserSelector>
@@ -79,14 +80,75 @@ const onSubmit = form.handleSubmit((values) => {
       </form>
 
       <div class="min-w-0 flex-1 py-10 pr-5 xl:max-w-[56rem] xl:pl-20">
-          <LazyGeneralClusterTest></LazyGeneralClusterTest>
+        <!-- <LazyGeneralClusterTest></LazyGeneralClusterTest> -->
         <template v-if="results !== undefined">
-          <LazyGeneralMapPoints v-if="results.data.clusteredData !== undefined" :data="results.data.clusteredData!"
-            :map="results.data.mapName!"></LazyGeneralMapPoints>
-          <LazyGeneralWinrateChart :data="results.data.factionWinrate"></LazyGeneralWinrateChart>
-          <LazyGeneralAverageOsToTimeChart :data="results.data.osToTime"></LazyGeneralAverageOsToTimeChart>
-          <LazyGeneralAverageOsToTimeChart :data="results.data.osToTime2"></LazyGeneralAverageOsToTimeChart>
-          <LazyGeneralAverageOsToTimeChart :data="results.data.osToTime3"></LazyGeneralAverageOsToTimeChart>
+          <LazyGeneralMapPoints
+            v-if="results.data.clusteredData !== undefined"
+            :data="results.data.clusteredData!"
+            :map="{
+              name: results.data.map!.fileName!,
+              height: results.data.map!.height!,
+              width: results.data.map!.width!,
+            }"
+          ></LazyGeneralMapPoints>
+          <Tabs default-value="average-os-2" class="min-h-[600px]">
+            <TabsList class="flex">
+              <TabsTrigger value="osdiff"> Os diff </TabsTrigger>
+              <TabsTrigger value="average-os"> Average os spikey </TabsTrigger>
+              <TabsTrigger value="average-os-2">
+                Average os smooth
+              </TabsTrigger>
+              <TabsTrigger value="average-os-3">
+                Average os smoother
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="osdiff">
+              <LazyGeneralOsToTimeChart
+                :data="results.data.osDiffToTime"
+                :title="'Os diff'"
+                :x-label="'maxOs - minOs'"
+              >
+              </LazyGeneralOsToTimeChart>
+            </TabsContent>
+            <TabsContent value="average-os">
+              <LazyGeneralOsToTimeChart
+                :data="results.data.osToTime"
+                :title="'Average battle os spikey'"
+                :x-label="'average os'"
+                :max="50"
+                :min="0"
+              >
+              </LazyGeneralOsToTimeChart>
+            </TabsContent>
+            <TabsContent value="average-os-2">
+              <LazyGeneralOsToTimeChart
+                :data="results.data.osToTime2"
+                :title="'Average battle os smooth'"
+                :x-label="'average os'"
+                :max="50"
+                :min="0"
+              >
+              </LazyGeneralOsToTimeChart>
+            </TabsContent>
+            <TabsContent value="average-os-3">
+              <LazyGeneralOsToTimeChart
+                :data="results.data.osToTime3"
+                :title="'Average os smoother'"
+                :x-label="'average os'"
+                :max="50"
+                :min="0"
+              >
+              </LazyGeneralOsToTimeChart>
+            </TabsContent>
+            <LazyGeneralWinrateChart :data="results.data.factionWinrate">
+            </LazyGeneralWinrateChart>
+
+            <LazyGeneralTeamWinrateChart
+              v-if="results.data.teamWinrate !== undefined"
+              :data="results.data.teamWinrate"
+            >
+            </LazyGeneralTeamWinrateChart>
+          </Tabs>
         </template>
       </div>
     </div>
