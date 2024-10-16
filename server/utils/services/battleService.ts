@@ -5,19 +5,25 @@ import {
   desc,
   eq,
   exists,
+  gte,
   inArray,
   lt,
   max,
   sql,
 } from "drizzle-orm";
-import type { BattleEntity } from "../database/schema";
+import type {
+  BattleEntity,
+  BattleTeamEntity,
+  UserToBattleTeamEntity,
+} from "../database/schema";
 import { battleTable } from "../database/schema";
 import consola from "consola";
 import type { Grouped } from "../array/groupBy";
 import type {
   BattleDto,
   BattleDtoInsert,
-  UserToBattleTeamDto,
+  BattleTeamDto,
+  ProcessingUser,
 } from "../dto/dto";
 import type { MapService } from "#imports";
 
@@ -83,27 +89,84 @@ export class BattleService {
       .limit(limit)
       .orderBy(desc(battleTable.startTime));
 
-    //console.log("ids", await battleIds);
-    const battles = await logAnalyze(
+    const battlesRequest = logAnalyze(
+      db
+        .select()
+        .from(battleTable)
+        .where(and(inArray(battleTable.id, battleIds)))
+        .orderBy(desc(battleTable.startTime)),
+    );
+    const usersToBattleRequest = logAnalyze(
       db
         .select({
-          battle: battleTable,
-          player: userToBattleTable,
+          userId: userToBattleTable.userId,
+          battleTeamBattleId: userToBattleTable.battleTeamBattleId,
+          battleTeamNumber: userToBattleTable.battleTeamNumber,
+          skill: userToBattleTable.skill,
+          rank: userToBattleTable.rank,
+          faction: userToBattleTable.faction,
+          startPosX: userToBattleTable.startPosX,
+          startPosZ: userToBattleTable.startPosZ,
         })
-        .from(battleTable)
+        .from(userToBattleTable)
         .where(
           and(
             eq(userToBattleTable.isSpectator, false),
-            inArray(battleTable.id, battleIds),
+            inArray(userToBattleTable.battleTeamBattleId, battleIds),
           ),
-        )
-        .innerJoin(
-          userToBattleTable,
-          eq(battleTable.id, userToBattleTable.battleTeamBattleId),
-        )
-        .orderBy(desc(battleTable.startTime)),
+        ),
     );
-    return battles;
+    const teamsToBattleRequest = await logAnalyze(
+      db
+        .select()
+        .from(battleTeamTable)
+        .where(
+          and(
+            gte(battleTeamTable.teamNumber, 0),
+            inArray(battleTeamTable.battleId, battleIds),
+          ),
+        ),
+    );
+    const [battles, usersToBattle, teamsToBattle] = await Promise.all([battlesRequest, usersToBattleRequest, teamsToBattleRequest])
+    const battleMap = new Map<string, BattleEntity>();
+    const userMap = new Map<string, ProcessingUser[]>();
+    const teamMap = new Map<string, BattleTeamEntity[]>();
+
+    for (const v of battles) {
+      battleMap.set(v.id, v);
+    }
+    for (const v of usersToBattle) {
+      const arr = userMap.get(v.battleTeamBattleId);
+      if (arr === undefined) {
+        userMap.set(v.battleTeamBattleId, [v]);
+      } else {
+        arr.push(v);
+        userMap.set(v.battleTeamBattleId, arr);
+      }
+    }
+    for (const v of teamsToBattle) {
+      const arr = teamMap.get(v.battleId);
+      if (arr === undefined) {
+        teamMap.set(v.battleId, [v]);
+      } else {
+        arr.push(v);
+        teamMap.set(v.battleId, arr);
+      }
+    }
+
+    console.log("userMap", userMap);
+    const grouped: BattleWithPlayers[] = [];
+
+    for (const v of battleMap) {
+      console.log("v", v[1], teamMap.get(v[0]), userMap.get(v[0]));
+      grouped.push({
+        key: v[1],
+        teams: teamMap.get(v[0]) ?? [],
+        values: userMap.get(v[0]) ?? [],
+      });
+    }
+
+    return grouped;
   }
 
   async getBattles(
@@ -187,17 +250,17 @@ export class BattleService {
         take,
       );
 
-      if(next.length === 0)
-        break;
+      if (next.length === 0) break;
 
-      const grouped = groupByMappedWithMap(next, {
-        selectGroupKey: (value) => value.battle,
-        selectGroupValue: (value) => value.player,
-        getMappableKey: (group) => group.id,
-      });
-      console.log('normal vs grouped', next.length, grouped.length, take, leftElements, next.at(-1), grouped.at(-1));
-      currentLastBattle = grouped.at(-1)!.key.startTime;
-      battles.push(...grouped);
+      //const grouped = group2ByMappedWithMap(next, {
+      //  selectGroupKey: (value) => value.battle,
+      //  selectGroupValue: (value) => value.player,
+      //  selectGroupValue2: (value) => value.team,
+      //  getMappableKey: (group) => group.id,
+      //});
+      currentLastBattle = next.at(-1)!.key.startTime;
+
+      battles.push(...next);
     }
 
     return battles;
@@ -205,7 +268,9 @@ export class BattleService {
 
   insertBattles() {}
 }
-export type BattleWithPlayers = Grouped<UserToBattleTeamDto, BattleDto>;
+export type BattleWithPlayers = Grouped<ProcessingUser, BattleDto> & {
+  teams: BattleTeamDto[];
+};
 
 export function useBattleService() {
   return new BattleService();
