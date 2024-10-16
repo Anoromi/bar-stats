@@ -64,6 +64,8 @@ export const mapTable = sqliteTable(
     scriptName: text("script-name"),
     name: insensitiveText("name", {}).notNull(),
     subclassOfId: integer("subclass-of"),
+    width: integer("width"),
+    height: integer("height"),
   },
   (table) => {
     return {
@@ -96,6 +98,10 @@ export const battleTeamTable = sqliteTable(
       .references(() => battleTable.id)
       .notNull(),
     teamNumber: integer("team-number").notNull(),
+    bottom: integer("bottom"),
+    left: integer("left"),
+    top: integer("top"),
+    right: integer("right"),
   },
   (table) => {
     return {
