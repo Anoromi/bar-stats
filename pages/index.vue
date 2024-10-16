@@ -2,5 +2,3 @@
 
 navigateTo('/general/')
 </script>
-<template>
-</template>
