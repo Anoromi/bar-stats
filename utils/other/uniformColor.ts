@@ -1,6 +1,6 @@
-import { randColor } from "./randColor"
+import { randColor } from "./randColor";
 
-const blueUniformColors : [string, string][]  =  [
+const blueUniformColors: [string, string][] = [
   ["#0B3EF3", "Blue"],
   ["#0CE908", "Green"],
   ["#00f5e5", "Cyan"],
@@ -21,9 +21,9 @@ const blueUniformColors : [string, string][]  =  [
   ["#B7EA63", "Lime"],
   ["#C4A9FF", "Mauve"],
   ["#37713A", "Fern"],
-]
+];
 
-const redUniformColors : [string, string][] = [
+const redUniformColors: [string, string][] = [
   ["#FF1005", "Red"],
   ["#FFD200", "Yellow"],
   ["#FF6107", "Orange"],
@@ -44,24 +44,35 @@ const redUniformColors : [string, string][] = [
   ["#FFAAF3", "Rose"],
   ["#764A4A", "Chestnut"],
   ["#9F0D05", "Crimson"],
+];
 
-]
-
-export function getUniformColorRed(index: number) {
-  if(index > blueUniformColors.length) {
-    console.error("Requested too many colors", index)
-    return [randColor(), "Unknown"]
-
+export type NamedColor = [color: string, name: string]
+export function getUniformColorRed(index: number) : NamedColor {
+  if (index > blueUniformColors.length) {
+    console.error("Requested too many colors", index);
+    return [randColor(), "Unknown"];
   }
-  return blueUniformColors[index]
+  return redUniformColors[index];
 }
 
-export function getUniformColorBlue(index: number) {
-  if(index > redUniformColors.length) {
-    console.error("Requested too many colors", index)
-    return [randColor(), "Unknown"]
-
+export function getUniformColorBlue(index: number) : NamedColor {
+  if (index > redUniformColors.length) {
+    console.error("Requested too many colors", index);
+    return [randColor(), "Unknown"];
   }
-  return redUniformColors[index]
+  return blueUniformColors[index];
 }
 
+export function getAnyUniformColor(index: number) : NamedColor {
+  if (
+    index >= blueUniformColors.length &&
+    index >= blueUniformColors.length + redUniformColors.length
+  ) {
+    //console.error("Requested too many colors", index);
+    return [randColor(), "Unknown"];
+  }
+  if (index >= blueUniformColors.length) {
+    return redUniformColors[index - blueUniformColors.length];
+  }
+  return blueUniformColors[index];
+}
