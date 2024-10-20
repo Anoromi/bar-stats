@@ -14,7 +14,7 @@ function invertColor() {
   <main class="flex h-screen flex-col overflow-auto">
     <header class="flex h-16 items-baseline bg-emphasis px-2 py-4 text-surface-foreground sm:px-4">
       <NuxtLink class="text-2xl text-primary" to="/">
-        <b>BAR</b> Stats
+        <b>BAR</b> Charted
       </NuxtLink>
       <nav class="ml-12">
         <NuxtLink class="text-surface-foreground" to="/general">
