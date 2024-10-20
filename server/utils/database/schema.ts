@@ -154,6 +154,10 @@ export const userToBattleTable = sqliteTable(
         table.battleTeamBattleId,
       ),
 
+      battleIndex: index("user-to-battle-battle-id-idx").on(
+        table.battleTeamBattleId,
+      ),
+
       userIdIndex: index("user-to-battle-user-id-idx").on(table.userId),
     };
   },

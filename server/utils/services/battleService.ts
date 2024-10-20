@@ -22,6 +22,7 @@ import type {
   ProcessingUser,
 } from "../dto/dto";
 import type { MapService } from "#imports";
+import { explainAnalyzeLog } from "../database/explainAnalyze";
 
 export const lastBattleQuery = () =>
   db
@@ -84,6 +85,50 @@ export class BattleService {
       )
       .limit(limit)
       .orderBy(desc(battleTable.startTime));
+    //console.log('battle ids table')
+    //await explainAnalyzeLog(battleIds)
+    //console.log('battle table')
+    //await explainAnalyzeLog(
+    //  db
+    //    .select()
+    //    .from(battleTable)
+    //    .where(and(inArray(battleTable.id, battleIds)))
+    //    .orderBy(desc(battleTable.startTime)),
+    //);
+    //console.log('user to battle table')
+    //await explainAnalyzeLog(
+    //  db
+    //    .select({
+    //      userId: userToBattleTable.userId,
+    //      battleTeamBattleId: userToBattleTable.battleTeamBattleId,
+    //      battleTeamNumber: userToBattleTable.battleTeamNumber,
+    //      skill: userToBattleTable.skill,
+    //      rank: userToBattleTable.rank,
+    //      faction: userToBattleTable.faction,
+    //      startPosX: userToBattleTable.startPosX,
+    //      startPosZ: userToBattleTable.startPosZ,
+    //    })
+    //    .from(userToBattleTable)
+    //    .where(
+    //      and(
+    //        eq(userToBattleTable.isSpectator, false),
+    //        inArray(userToBattleTable.battleTeamBattleId, battleIds),
+    //      ),
+    //    ),
+    //);
+    //console.log('battle team table')
+    //await explainAnalyzeLog(
+    //  db
+    //    .select()
+    //    .from(battleTeamTable)
+    //    .where(
+    //      and(
+    //        gte(battleTeamTable.teamNumber, 0),
+    //        inArray(battleTeamTable.battleId, battleIds),
+    //      ),
+    //    ),
+    //);
+    //throw new Error("hehe");
 
     const battlesRequest = db
       .select()
