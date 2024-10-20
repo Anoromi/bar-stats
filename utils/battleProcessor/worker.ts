@@ -17,6 +17,7 @@ import { calculateTeamWinrate } from "./teamWinrate";
 import { clusterizePlayers } from "./clusterizePlayers";
 import type { LabeledPlayer } from "./labeledPlayers";
 import { max } from "../other/max";
+import { getBattles } from "./getBattles";
 
 async function processBattleRequest(params: GetBattleQuery): Promise<{
   battles: BattleWithPlayers[];
@@ -33,22 +34,7 @@ async function processBattleRequest(params: GetBattleQuery): Promise<{
   osDiffToTime: [os: number, time: number][];
   maxTeamCount: number;
 }> {
-  const battles = await fetch(
-    "/api/battle?" +
-      new URLSearchParams(
-        generateParams<GetBattleQuery>(
-          ["map", params.map],
-          ["limit", params.limit?.toString()],
-          ["users", params.users?.map((v) => v.toString())],
-          ["battleType", params.battleType],
-        ),
-      ),
-    {
-      headers: {
-        "Content-Type": "application/json",
-      },
-    },
-  ).then(async (v) => (await v.json()) as BattleWithPlayers[]);
+  const battles = await getBattles(params)
   console.log("received", battles);
   console.log(
     "received",
