@@ -31,7 +31,7 @@ const option = computed<ECOption>(() => {
       {
         data: factionWinrate.value.map((v) => v.ratio),
         type: "bar",
-        color: factionWinrate.value.map((v, i) => getUniformColorRed(i)[0]),
+        color: factionWinrate.value.map((_v, i) => getUniformColorRed(i)[0]),
         colorBy: "data",
         itemStyle: {
           borderRadius: [8, 8, 0, 0],
