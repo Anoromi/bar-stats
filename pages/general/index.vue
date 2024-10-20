@@ -76,7 +76,7 @@ const onSubmit = form.handleSubmit((values) => {
       >
         <legend class="mb-2 text-lg font-bold">Filter</legend>
         <GeneralMapSelector name="map"></GeneralMapSelector>
-        <GeneralUserSelector name="users"></GeneralUserSelector>
+        <!-- <GeneralUserSelector name="users"></GeneralUserSelector> -->
         <GeneralLimitsInput name="limit"></GeneralLimitsInput>
         <FormField v-slot="{ componentField }" name="battleType">
           <FormItem>
