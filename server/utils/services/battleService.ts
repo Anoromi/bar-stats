@@ -11,11 +11,7 @@ import {
   max,
   sql,
 } from "drizzle-orm";
-import type {
-  BattleEntity,
-  BattleTeamEntity,
-  UserToBattleTeamEntity,
-} from "../database/schema";
+import type { BattleEntity, BattleTeamEntity } from "../database/schema";
 import { battleTable } from "../database/schema";
 import consola from "consola";
 import type { Grouped } from "../array/groupBy";
@@ -127,7 +123,11 @@ export class BattleService {
           ),
         ),
     );
-    const [battles, usersToBattle, teamsToBattle] = await Promise.all([battlesRequest, usersToBattleRequest, teamsToBattleRequest])
+    const [battles, usersToBattle, teamsToBattle] = await Promise.all([
+      battlesRequest,
+      usersToBattleRequest,
+      teamsToBattleRequest,
+    ]);
     const battleMap = new Map<string, BattleEntity>();
     const userMap = new Map<string, ProcessingUser[]>();
     const teamMap = new Map<string, BattleTeamEntity[]>();
@@ -169,12 +169,12 @@ export class BattleService {
     return grouped;
   }
 
-  async getBattles(
-    userIds: number[] | null,
-    battleMap: string | null,
-    battleType: string | null,
-    limit: number,
-  ): Promise<BattleWithPlayers[]> {
+  async getBattles({userIds, battleMap, battleType, limit}: {
+    userIds: number[] | null;
+    battleMap: string | null;
+    battleType: string | null;
+    limit: number;
+  }): Promise<BattleWithPlayers[]> {
     const conditions: SQLWrapper[] = [];
 
     console.count("battle");
