@@ -85,44 +85,38 @@ export class BattleService {
       .limit(limit)
       .orderBy(desc(battleTable.startTime));
 
-    const battlesRequest = logAnalyze(
-      db
-        .select()
-        .from(battleTable)
-        .where(and(inArray(battleTable.id, battleIds)))
-        .orderBy(desc(battleTable.startTime)),
-    );
-    const usersToBattleRequest = logAnalyze(
-      db
-        .select({
-          userId: userToBattleTable.userId,
-          battleTeamBattleId: userToBattleTable.battleTeamBattleId,
-          battleTeamNumber: userToBattleTable.battleTeamNumber,
-          skill: userToBattleTable.skill,
-          rank: userToBattleTable.rank,
-          faction: userToBattleTable.faction,
-          startPosX: userToBattleTable.startPosX,
-          startPosZ: userToBattleTable.startPosZ,
-        })
-        .from(userToBattleTable)
-        .where(
-          and(
-            eq(userToBattleTable.isSpectator, false),
-            inArray(userToBattleTable.battleTeamBattleId, battleIds),
-          ),
+    const battlesRequest = db
+      .select()
+      .from(battleTable)
+      .where(and(inArray(battleTable.id, battleIds)))
+      .orderBy(desc(battleTable.startTime));
+    const usersToBattleRequest = db
+      .select({
+        userId: userToBattleTable.userId,
+        battleTeamBattleId: userToBattleTable.battleTeamBattleId,
+        battleTeamNumber: userToBattleTable.battleTeamNumber,
+        skill: userToBattleTable.skill,
+        rank: userToBattleTable.rank,
+        faction: userToBattleTable.faction,
+        startPosX: userToBattleTable.startPosX,
+        startPosZ: userToBattleTable.startPosZ,
+      })
+      .from(userToBattleTable)
+      .where(
+        and(
+          eq(userToBattleTable.isSpectator, false),
+          inArray(userToBattleTable.battleTeamBattleId, battleIds),
         ),
-    );
-    const teamsToBattleRequest = await logAnalyze(
-      db
-        .select()
-        .from(battleTeamTable)
-        .where(
-          and(
-            gte(battleTeamTable.teamNumber, 0),
-            inArray(battleTeamTable.battleId, battleIds),
-          ),
+      );
+    const teamsToBattleRequest = db
+      .select()
+      .from(battleTeamTable)
+      .where(
+        and(
+          gte(battleTeamTable.teamNumber, 0),
+          inArray(battleTeamTable.battleId, battleIds),
         ),
-    );
+      );
     const [battles, usersToBattle, teamsToBattle] = await Promise.all([
       battlesRequest,
       usersToBattleRequest,
@@ -169,7 +163,12 @@ export class BattleService {
     return grouped;
   }
 
-  async getBattles({userIds, battleMap, battleType, limit}: {
+  async getBattles({
+    userIds,
+    battleMap,
+    battleType,
+    limit,
+  }: {
     userIds: number[] | null;
     battleMap: string | null;
     battleType: string | null;
