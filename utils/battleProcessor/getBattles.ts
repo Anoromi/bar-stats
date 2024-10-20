@@ -44,6 +44,7 @@ export async function getBattles(params: GetBattleQuery) {
     const next = await requestBattles({
       ...params,
       afterBattle: currentLastBattle,
+      limit: take
     });
 
     if (next.length === 0) break;
