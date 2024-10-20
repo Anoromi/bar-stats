@@ -1,22 +1,31 @@
 import type { GetBattleQuery } from "~/server/api/battle";
 import { WorkerServer } from "../worker/core/server";
 import { calculateAvgOsToTime, calculateOsDiffToTime } from "./osToTime";
-import { depthClusterize } from "./clusterize";
-import type {
-  MapDto,
-  ProcessingUser,
-  UserToBattleTeamDto,
-} from "~/server/utils/dto/dto";
+import type { MapDto } from "~/server/utils/dto/dto";
 import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 import { normalizeBattleTeamBoxes } from "./mainTeamBoxes";
 import { generateParams } from "./generateParams";
 import { getMap } from "./map";
 import type { MapEntity } from "~/server/utils/database/schema";
-import { assert } from "../other/assert";
 import { calculateWinrateOfFactions } from "./factionWinrate";
 import { calculateTeamWinrate } from "./teamWinrate";
+import { clusterizePlayers } from "./clusterizePlayers";
+import type { LabeledPlayer } from "./labeledPlayers";
+import { max } from "../other/max";
 
-async function processBattleRequest(params: GetBattleQuery) {
+async function processBattleRequest(params: GetBattleQuery): Promise<{
+  battles: BattleWithPlayers[];
+  factionWinrate: Record<string, number>;
+  teamWinrate?: Record<number, number>;
+  clusteredData?: LabeledPlayer[];
+  map?: MapEntity;
+  clusterCount?: number;
+  osToTime: [os: number, time: number][];
+  osToTime2: [os: number, time: number][];
+  osToTime3: [os: number, time: number][];
+  osDiffToTime: [os: number, time: number][];
+  maxTeamCount: number;
+}> {
   const battles = await fetch(
     "/api/battle?" +
       new URLSearchParams(
@@ -39,10 +48,28 @@ async function processBattleRequest(params: GetBattleQuery) {
     battles.map((v) => v.key.id),
   );
 
+  let filteredBattles = battles;
+  if (params.map !== null) {
+    filteredBattles = normalizeBattleTeamBoxes(filteredBattles);
+  }
+
   return {
-    ...genericProcess(battles),
-    ...(params.map !== null ? await processSpecificMap(battles) : {}),
+    battles: filteredBattles,
+    ...genericProcess(filteredBattles),
+    ...(params.map !== null ? await processSpecificMap(filteredBattles) : {}),
+    maxTeamCount: calculateTeamCount(battles),
   };
+}
+
+function calculateTeamCount(battles: BattleWithPlayers[]): number {
+  let foundMax = 0;
+  for (let i = 0; i < battles.length; i++) {
+    const battle = battles[i];
+    const next =
+      max(battle.teams, (a, b) => a.teamNumber - b.teamNumber)!.teamNumber + 1;
+    if (next > foundMax) foundMax = next;
+  }
+  return foundMax;
 }
 
 function genericProcess(battles: BattleWithPlayers[]): {
@@ -61,88 +88,22 @@ function genericProcess(battles: BattleWithPlayers[]): {
   };
 }
 
-async function cluster(battles: BattleWithPlayers[], map: MapDto) {
-  const players: {
-    player: ProcessingUser;
-    battleIndex: number;
-  }[] = [];
-  for (let i = 0; i < battles.length; i++) {
-    const battle = battles[i];
-    for (let j = 0; j < battle.values.length; j++) {
-      const player = battle.values[j];
-      const playerTeam = battle.teams.find(
-        (v) => v.teamNumber === player.battleTeamNumber,
-      );
-      assert(playerTeam !== undefined, "Couldn't find a team for player");
-      const translatedLeft = (playerTeam.left! * map.width! * 1000) / 2 - 50;
-      const translatedRight = (playerTeam.right! * map.width! * 1000) / 2 + 50;
-      const translatedTop = (playerTeam.top! * map.height! * 1000) / 2 - 50;
-      const translatedBottom =
-        (playerTeam.bottom! * map.height! * 1000) / 2 + 50;
-
-      if (
-        player.startPosX !== null &&
-        player.startPosZ !== null &&
-        player.startPosX >= translatedLeft &&
-        player.startPosX <= translatedRight &&
-        player.startPosZ <= translatedBottom &&
-        player.startPosZ >= translatedTop
-      )
-        players.push({
-          player,
-          battleIndex: i,
-        });
-    }
-  }
-
-  //battles.flatMap((v) => v.values);
-  console.time("clusterize");
-  const { data: clusterLabels, clusterCount } = await depthClusterize(
-    players,
-    (player) => ({
-      x: player.player.startPosX!,
-      y: player.player.startPosZ!,
-      battleIndex: player.battleIndex,
-    }),
-    //distFunction,
-    600,
-    20,
-  );
-  console.timeEnd("clusterize");
-
-  const clusteredData = clusterLabels.map(
-    (v, i) => [players[i].player, v] as [UserToBattleTeamDto, number],
-  );
-
-  //console.log(clusteredData.filter((v) => v === undefined));
-  //agglomerativeClusterize(
-  //  clusteredData,
-  //  clusterCount + 1,
-  //  singleLinkCloseness,
-  //  distFunction,
-  //  100,
-  //);
-  return {
-    clusteredData: clusteredData, //.filter((v) => v[1] !== 0),
-    clusterCount,
-  };
-}
-
 async function processSpecificMap(battles: BattleWithPlayers[]): Promise<{
   teamWinrate: Record<number, number>;
-  clusteredData?: [UserToBattleTeamDto, number][];
+  labeledPlayers: LabeledPlayer[];
   map?: MapDto;
   clusterCount?: number;
 }> {
   const map = await getMap(battles[0].key.mapId);
-  const filteredBattles = normalizeBattleTeamBoxes(battles);
-  const { clusteredData, clusterCount } = await cluster(filteredBattles, map);
-  return {
-    teamWinrate: calculateTeamWinrate(filteredBattles),
-    //clusteredData: players.map(v => [v, 0] as [UserToBattleTeamDto, number]),
-    clusteredData: clusteredData,
+  const { labeledPlayers, clusterCount } = await clusterizePlayers(
+    battles,
     map,
-    clusterCount: clusterCount,
+  );
+  return {
+    teamWinrate: calculateTeamWinrate(battles),
+    labeledPlayers,
+    map,
+    clusterCount,
   };
 }
 
@@ -154,15 +115,17 @@ export type BattlesProcessorRequest = {
 export type BattlesProcessorResponse = {
   type: "battle";
   data: {
+    battles: BattleWithPlayers[];
     factionWinrate: Record<string, number>;
     teamWinrate?: Record<number, number>;
-    clusteredData?: [UserToBattleTeamDto, number][];
+    labeledPlayers?: LabeledPlayer[];
     map?: MapEntity;
     clusterCount?: number;
     osToTime: [os: number, time: number][];
     osToTime2: [os: number, time: number][];
     osToTime3: [os: number, time: number][];
     osDiffToTime: [os: number, time: number][];
+    maxTeamCount: number;
   };
 };
 
