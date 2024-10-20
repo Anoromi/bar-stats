@@ -112,18 +112,18 @@ const onSubmit = form.handleSubmit((values) => {
           </LazyGeneralMapPoints>
           <Tabs default-value="average-os-2" class="min-h-[600px] mt-10">
             <TabsList class="flex">
-              <TabsTrigger value="osdiff"> Os diff </TabsTrigger>
-              <TabsTrigger value="average-os"> Average os spikey </TabsTrigger>
-              <TabsTrigger value="average-os-2">
+              <TabsTrigger value="osdiff" class="text-base"> Os diff </TabsTrigger>
+              <TabsTrigger value="average-os" class="text-base"> Average os spikey </TabsTrigger>
+              <TabsTrigger value="average-os-2" class="text-base">
                 Average os smooth
               </TabsTrigger>
-              <TabsTrigger value="average-os-3">
+              <TabsTrigger value="average-os-3" class="text-base">
                 Average os smoother
               </TabsTrigger>
-              <TabsTrigger value="min-os">
+              <TabsTrigger value="min-os" class="text-base">
                 Min os
               </TabsTrigger>
-              <TabsTrigger value="max-os">
+              <TabsTrigger value="max-os" class="text-base">
                 Max os
               </TabsTrigger>
             </TabsList>

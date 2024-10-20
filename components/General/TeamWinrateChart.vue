@@ -18,7 +18,7 @@ const option = computed<ECOption>(() => {
   console.log("winrates", factionWinrate.value);
   return {
     title: {
-      text: "Faction win factor",
+      text: "Team win rate",
     },
     xAxis: {
       type: "category",
