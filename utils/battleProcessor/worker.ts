@@ -1,6 +1,11 @@
 import type { GetBattleQuery } from "~/server/api/battle";
 import { WorkerServer } from "../worker/core/server";
-import { calculateAvgOsToTime, calculateOsDiffToTime } from "./osToTime";
+import {
+  calculateAvgOsToTime,
+  calculateMaxOsToTime,
+  calculateMinOsToTime,
+  calculateOsDiffToTime,
+} from "./osToTime";
 import type { MapDto } from "~/server/utils/dto/dto";
 import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 import { normalizeBattleTeamBoxes } from "./mainTeamBoxes";
@@ -23,6 +28,8 @@ async function processBattleRequest(params: GetBattleQuery): Promise<{
   osToTime: [os: number, time: number][];
   osToTime2: [os: number, time: number][];
   osToTime3: [os: number, time: number][];
+  minOs: [os: number, time: number][];
+  maxOs: [os: number, time: number][];
   osDiffToTime: [os: number, time: number][];
   maxTeamCount: number;
 }> {
@@ -48,19 +55,21 @@ async function processBattleRequest(params: GetBattleQuery): Promise<{
     battles.map((v) => v.key.id),
   );
 
-  if(battles.length === 0) {
+  if (battles.length === 0) {
     return {
       osToTime: [],
       osToTime2: [],
       osToTime3: [],
+      minOs: [],
+      maxOs: [],
       battles: [],
       map: undefined,
       maxTeamCount: 0,
       osDiffToTime: [],
       factionWinrate: {},
-    }
+    };
   }
-  
+
   let filteredBattles = battles;
   if (params.map !== null) {
     filteredBattles = normalizeBattleTeamBoxes(filteredBattles);
@@ -91,6 +100,8 @@ function genericProcess(battles: BattleWithPlayers[]): {
   osToTime2: [os: number, time: number][];
   osToTime3: [os: number, time: number][];
   osDiffToTime: [os: number, time: number][];
+  minOs: [os: number, time: number][];
+  maxOs: [os: number, time: number][];
 } {
   return {
     factionWinrate: calculateWinrateOfFactions(battles),
@@ -98,6 +109,8 @@ function genericProcess(battles: BattleWithPlayers[]): {
     osToTime2: calculateAvgOsToTime(battles, battles.length / 10),
     osToTime3: calculateAvgOsToTime(battles, battles.length / 5),
     osDiffToTime: calculateOsDiffToTime(battles, battles.length / 10),
+    minOs: calculateMinOsToTime(battles, battles.length / 5),
+    maxOs: calculateMaxOsToTime(battles, battles.length / 5),
   };
 }
 
@@ -137,6 +150,8 @@ export type BattlesProcessorResponse = {
     osToTime: [os: number, time: number][];
     osToTime2: [os: number, time: number][];
     osToTime3: [os: number, time: number][];
+    minOs: [os: number, time: number][];
+    maxOs: [os: number, time: number][];
     osDiffToTime: [os: number, time: number][];
     maxTeamCount: number;
   };

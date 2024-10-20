@@ -30,6 +30,24 @@ export function calculateOsDiffToTime(
   return calculateParamToTime(battles, meanSize, minDiff);
 }
 
+export function calculateMinOsToTime(
+  battles: BattleWithPlayers[],
+  meanSize: number = 100,
+): [os: number, time: number][] {
+  return calculateParamToTime(battles, meanSize, (v) => {
+    return Math.min(...v.values.map(player => player.skill).filter(skill => skill !== null))
+  });
+}
+
+export function calculateMaxOsToTime(
+  battles: BattleWithPlayers[],
+  meanSize: number = 100,
+): [os: number, time: number][] {
+  return calculateParamToTime(battles, meanSize, (v) => {
+    return Math.max(...v.values.map(player => player.skill).filter(skill => skill !== null))
+  });
+}
+
 function calculateParamToTime(
   battles: BattleWithPlayers[],
   meanSize: number = 100,

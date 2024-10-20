@@ -22,7 +22,7 @@ const formSchema = toTypedSchema(
     map: z.string().optional(),
     limit: z.enum(["500", "1000", "3000"]).default("500"),
     startDate: z.string().date().optional(),
-    battleType: z.string().default('8v8')
+    battleType: z.string().default("8v8"),
   }),
 );
 
@@ -54,7 +54,7 @@ const onSubmit = form.handleSubmit((values) => {
     .value!.request({
       type: "battle",
       params: {
-        battleType:  battleType!,
+        battleType: battleType!,
         map: map ?? null,
         users: users?.flatMap((v) => v.id) ?? null,
         limit: limit !== undefined ? parseInt(limit) : null,
@@ -84,9 +84,7 @@ const onSubmit = form.handleSubmit((values) => {
             <FormControl>
               <Input type="text" placeholder="shadcn" v-bind="componentField" />
             </FormControl>
-            <FormDescription>
-              8v8, 1v1, 4v4, etc...
-            </FormDescription>
+            <FormDescription> 8v8, 1v1, 4v4, etc... </FormDescription>
             <FormMessage />
           </FormItem>
         </FormField>
@@ -112,7 +110,7 @@ const onSubmit = form.handleSubmit((values) => {
             :cluster-count="results.data.clusterCount!"
           >
           </LazyGeneralMapPoints>
-          <Tabs default-value="average-os-2" class="min-h-[600px]">
+          <Tabs default-value="average-os-2" class="min-h-[600px] mt-10">
             <TabsList class="flex">
               <TabsTrigger value="osdiff"> Os diff </TabsTrigger>
               <TabsTrigger value="average-os"> Average os spikey </TabsTrigger>
@@ -121,6 +119,12 @@ const onSubmit = form.handleSubmit((values) => {
               </TabsTrigger>
               <TabsTrigger value="average-os-3">
                 Average os smoother
+              </TabsTrigger>
+              <TabsTrigger value="min-os">
+                Min os
+              </TabsTrigger>
+              <TabsTrigger value="max-os">
+                Max os
               </TabsTrigger>
             </TabsList>
             <TabsContent value="osdiff">
@@ -161,15 +165,36 @@ const onSubmit = form.handleSubmit((values) => {
               >
               </LazyGeneralOsToTimeChart>
             </TabsContent>
-            <LazyGeneralWinrateChart :data="results.data.factionWinrate">
-            </LazyGeneralWinrateChart>
+            <TabsContent value="min-os">
+              <LazyGeneralOsToTimeChart
+                :data="results.data.minOs"
+                :title="'Min os'"
+                :x-label="'min os'"
+                :max="50"
+                :min="0"
+              >
+              </LazyGeneralOsToTimeChart>
+            </TabsContent>
+            <TabsContent value="max-os">
+              <LazyGeneralOsToTimeChart
+                :data="results.data.maxOs"
+                :title="'Max os'"
+                :x-label="'max os'"
+                :max="50"
+                :min="0"
+              >
+              </LazyGeneralOsToTimeChart>
+            </TabsContent>
 
-            <LazyGeneralTeamWinrateChart
-              v-if="results.data.teamWinrate !== undefined"
-              :data="results.data.teamWinrate"
-            >
-            </LazyGeneralTeamWinrateChart>
           </Tabs>
+          <LazyGeneralWinrateChart :data="results.data.factionWinrate">
+          </LazyGeneralWinrateChart>
+
+          <LazyGeneralTeamWinrateChart
+            v-if="results.data.teamWinrate !== undefined"
+            :data="results.data.teamWinrate"
+          >
+          </LazyGeneralTeamWinrateChart>
         </template>
       </div>
     </div>
