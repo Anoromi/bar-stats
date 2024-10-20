@@ -20,7 +20,9 @@ const formSchema = toTypedSchema(
       .array()
       .default([]),
     map: z.string().optional(),
-    limit: z.enum(["1000", "3000"]).default('1000'),
+    limit: z.enum(["500", "1000", "3000"]).default("500"),
+    startDate: z.string().date().optional(),
+    battleType: z.string().default('8v8')
   }),
 );
 
@@ -46,16 +48,16 @@ const onSubmit = form.handleSubmit((values) => {
     title: "Form submitted!",
     description: JSON.stringify(values),
   });
-  const { map, users } = form.values;
+  const { map, users, limit, battleType } = form.values;
 
   worker
     .value!.request({
       type: "battle",
       params: {
-        battleType: null,
+        battleType:  battleType!,
         map: map ?? null,
         users: users?.flatMap((v) => v.id) ?? null,
-        limit: 3000,
+        limit: limit !== undefined ? parseInt(limit) : null,
       },
     })
     .then((v) => {
@@ -76,6 +78,21 @@ const onSubmit = form.handleSubmit((values) => {
         <GeneralMapSelector name="map"></GeneralMapSelector>
         <GeneralUserSelector name="users"></GeneralUserSelector>
         <GeneralLimitsInput name="limit"></GeneralLimitsInput>
+        <FormField v-slot="{ componentField }" name="battleType">
+          <FormItem>
+            <FormLabel>Battle type</FormLabel>
+            <FormControl>
+              <Input type="text" placeholder="shadcn" v-bind="componentField" />
+            </FormControl>
+            <FormDescription>
+              8v8, 1v1, 4v4, etc...
+            </FormDescription>
+            <FormMessage />
+          </FormItem>
+        </FormField>
+
+        <!--         <GeneralDateInput name="startDate"></GeneralDateInput> -->
+
         <Button type="submit" variant="outline">Update</Button>
       </form>
 
@@ -83,14 +100,18 @@ const onSubmit = form.handleSubmit((values) => {
         <!-- <LazyGeneralClusterTest></LazyGeneralClusterTest> -->
         <template v-if="results !== undefined">
           <LazyGeneralMapPoints
-            v-if="results.data.clusteredData !== undefined"
-            :data="results.data.clusteredData!"
+            v-if="results.data.labeledPlayers !== undefined"
+            :battles="results.data.battles"
+            :player-clusters="results.data.labeledPlayers!"
             :map="{
               name: results.data.map!.fileName!,
               height: results.data.map!.height!,
               width: results.data.map!.width!,
             }"
-          ></LazyGeneralMapPoints>
+            :max-teams="results.data.maxTeamCount"
+            :cluster-count="results.data.clusterCount!"
+          >
+          </LazyGeneralMapPoints>
           <Tabs default-value="average-os-2" class="min-h-[600px]">
             <TabsList class="flex">
               <TabsTrigger value="osdiff"> Os diff </TabsTrigger>
