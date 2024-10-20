@@ -19,7 +19,6 @@ export default defineEventHandler<
     consola.log("let's start")
     const query = await getValidatedQuery(event, querySchema.parse);
     const mapService = useMapService();
-    consola.log('hehe', query)
     return await mapService.getMapSuggestions(query.name);
     } catch (error) {
       console.error(error);
