@@ -13,6 +13,7 @@
     "lpostbuild": "drizzle-kit generate && drizzle-kit push --force"
   },
   "dependencies": {
+    "@internationalized/date": "^3.5.6",
     "@libsql/client": "^0.14.0",
     "@nuxt/eslint": "^0.5.7",
     "@nuxt/fonts": "^0.9.2",
