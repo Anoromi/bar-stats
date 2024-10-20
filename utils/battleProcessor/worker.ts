@@ -48,6 +48,19 @@ async function processBattleRequest(params: GetBattleQuery): Promise<{
     battles.map((v) => v.key.id),
   );
 
+  if(battles.length === 0) {
+    return {
+      osToTime: [],
+      osToTime2: [],
+      osToTime3: [],
+      battles: [],
+      map: undefined,
+      maxTeamCount: 0,
+      osDiffToTime: [],
+      factionWinrate: {},
+    }
+  }
+  
   let filteredBattles = battles;
   if (params.map !== null) {
     filteredBattles = normalizeBattleTeamBoxes(filteredBattles);
