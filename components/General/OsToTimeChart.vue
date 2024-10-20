@@ -32,8 +32,6 @@ const option = computed<ECOption | null>(() => {
       {
         data: props.data,
         type: "line",
-        //color: ["red", "blue"],
-        //colorBy: "data",
         itemStyle: {
           borderRadius: [8, 8, 0, 0],
         },
