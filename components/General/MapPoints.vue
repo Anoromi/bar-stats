@@ -19,7 +19,6 @@ import {
   getAnyUniformColor,
   getUniformColorBlue,
   getUniformColorRed,
-  type NamedColor,
 } from "~/utils/other/uniformColor";
 import { useClientWorker } from "~/utils/worker/useClientWorker";
 import { assert } from "~/utils/other/assert";
@@ -60,16 +59,25 @@ const mapAspectRatio = computed(() => {
 
 const labelColors = computed(() => {
   if (props.maxTeams > 2) {
-    return labels.value.map((labelValue, i) => [...getAnyUniformColor(i), labelValue[0]] as const satisfies unknown[]);
+    return labels.value.map(
+      (labelValue, i) =>
+        [...getAnyUniformColor(i), labelValue[0]] as const satisfies unknown[],
+    );
   }
   const colors: [string, string, number][] = [];
   const teamCounts = Array(props.maxTeams).fill(0);
   for (const [labelValue, players] of labels.value) {
     const player = extractPlayer(props.battles, players[0]);
     if (player.battleTeamNumber === 0) {
-      colors.push([...getUniformColorRed(teamCounts[player.battleTeamNumber]), labelValue]);
+      colors.push([
+        ...getUniformColorRed(teamCounts[player.battleTeamNumber]),
+        labelValue,
+      ]);
     } else {
-      colors.push([...getUniformColorBlue(teamCounts[player.battleTeamNumber]), labelValue]);
+      colors.push([
+        ...getUniformColorBlue(teamCounts[player.battleTeamNumber]),
+        labelValue,
+      ]);
     }
     teamCounts[player.battleTeamNumber]++;
   }
@@ -85,6 +93,7 @@ watchEffect(() => {
     svg: `<svg viewBox="${0} ${0} ${width} ${height}" xmlns="http://www.w3.org/2000/svg"><image href="${href}" width="${width}" height="${height}" x="${0}" y="${0}"/></svg>`,
   });
 });
+
 const options = computed<ECOption>(() => {
   console.log("labels", labels.value);
   return {
@@ -134,12 +143,6 @@ const options = computed<ECOption>(() => {
         symbolSize: [20, 20],
         type: "scatter",
         data: [[pointCenter[0], pointCenter[1], labelIndex]],
-        //data: v[1]
-        //  .map(([playerIndex, battleIndex]) => {
-        //    const p = props.battles[battleIndex].values[playerIndex];
-        //    return [p.startPosX!, p.startPosZ!, labelIndex];
-        //  })
-        //  .slice(0, 100),
         color: labelColors.value[labelIndex][0],
         tooltip: {
           formatter: () => {
@@ -148,7 +151,10 @@ const options = computed<ECOption>(() => {
             `;
           },
         },
+        emphasis: {
+          focus: "self",
 
+        },
         label: {
           show: true,
           formatter: function () {
@@ -221,7 +227,9 @@ const { data: clusterData, status: clusterStatus } = useAsyncData(
     const result = await worker.value!.request({
       type: "evaluate",
       params: {
-        labels: toRaw(selectedColors.value).map(v => labelColors.value[v][2]!),
+        labels: toRaw(selectedColors.value).map(
+          (v) => labelColors.value[v][2]!,
+        ),
       },
     });
     assert(result.type === "evaluate");
