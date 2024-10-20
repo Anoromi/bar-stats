@@ -1,7 +1,7 @@
 export function avgPoint<Point>(
   points: Point[],
   extractData: (value: Point) => [number, number],
-) {
+) : [number, number] {
   let x = 0;
   let y = 0;
 
