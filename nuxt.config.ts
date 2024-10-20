@@ -17,6 +17,9 @@ export default defineNuxtConfig({
     prefix: "",
     componentDir: "./components/ui",
   },
+  imports: {
+    dirs: ['./composables']
+  },
   components: [
     {
       path: "~/components/other",
