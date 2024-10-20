@@ -44,11 +44,13 @@ export const battleTable = sqliteTable(
         table.endedNormally,
         table.hasBots,
         table.mapId,
+        table.battleType,
         table.startTime,
       ),
       startTimeIndex: index("start-time-index").on(
         table.endedNormally,
         table.hasBots,
+        table.battleType,
         table.startTime,
       ),
     };
