@@ -8,6 +8,7 @@ import {
   gte,
   inArray,
   lt,
+  lte,
   max,
   sql,
 } from "drizzle-orm";
@@ -22,7 +23,6 @@ import type {
   ProcessingUser,
 } from "../dto/dto";
 import type { MapService } from "#imports";
-import { explainAnalyzeLog } from "../database/explainAnalyze";
 
 export const lastBattleQuery = () =>
   db
@@ -89,46 +89,45 @@ export class BattleService {
     //await explainAnalyzeLog(battleIds)
     //console.log('battle table')
     //await explainAnalyzeLog(
-    //  db
-    //    .select()
-    //    .from(battleTable)
-    //    .where(and(inArray(battleTable.id, battleIds)))
-    //    .orderBy(desc(battleTable.startTime)),
+    // db
+    //   .select()
+    //   .from(battleTable)
+    //   .where(and(inArray(battleTable.id, battleIds)))
+    //   .orderBy(desc(battleTable.startTime)),
     //);
     //console.log('user to battle table')
     //await explainAnalyzeLog(
-    //  db
-    //    .select({
-    //      userId: userToBattleTable.userId,
-    //      battleTeamBattleId: userToBattleTable.battleTeamBattleId,
-    //      battleTeamNumber: userToBattleTable.battleTeamNumber,
-    //      skill: userToBattleTable.skill,
-    //      rank: userToBattleTable.rank,
-    //      faction: userToBattleTable.faction,
-    //      startPosX: userToBattleTable.startPosX,
-    //      startPosZ: userToBattleTable.startPosZ,
-    //    })
-    //    .from(userToBattleTable)
-    //    .where(
-    //      and(
-    //        eq(userToBattleTable.isSpectator, false),
-    //        inArray(userToBattleTable.battleTeamBattleId, battleIds),
-    //      ),
-    //    ),
+    // db
+    //   .select({
+    //     userId: userToBattleTable.userId,
+    //     battleTeamBattleId: userToBattleTable.battleTeamBattleId,
+    //     battleTeamNumber: userToBattleTable.battleTeamNumber,
+    //     skill: userToBattleTable.skill,
+    //     rank: userToBattleTable.rank,
+    //     faction: userToBattleTable.faction,
+    //     startPosX: userToBattleTable.startPosX,
+    //     startPosZ: userToBattleTable.startPosZ,
+    //   })
+    //   .from(userToBattleTable)
+    //   .where(
+    //     and(
+    //       eq(userToBattleTable.isSpectator, false),
+    //       inArray(userToBattleTable.battleTeamBattleId, battleIds),
+    //     ),
+    //   ),
     //);
     //console.log('battle team table')
     //await explainAnalyzeLog(
-    //  db
-    //    .select()
-    //    .from(battleTeamTable)
-    //    .where(
-    //      and(
-    //        gte(battleTeamTable.teamNumber, 0),
-    //        inArray(battleTeamTable.battleId, battleIds),
-    //      ),
-    //    ),
+    // db
+    //   .select()
+    //   .from(battleTeamTable)
+    //   .where(
+    //     and(
+    //       gte(battleTeamTable.teamNumber, 0),
+    //       inArray(battleTeamTable.battleId, battleIds),
+    //     ),
+    //   ),
     //);
-    //throw new Error("hehe");
 
     const battlesRequest = db
       .select()
@@ -197,7 +196,6 @@ export class BattleService {
     const grouped: BattleWithPlayers[] = [];
 
     for (const v of battleMap) {
-      console.log("v", v[1], teamMap.get(v[0]), userMap.get(v[0]));
       grouped.push({
         key: v[1],
         teams: teamMap.get(v[0]) ?? [],
@@ -213,11 +211,17 @@ export class BattleService {
     battleMap,
     battleType,
     limit,
+    afterBattle,
+    minOs,
+    maxOs,
   }: {
     userIds: number[] | null;
     battleMap: string | null;
     battleType: string | null;
     limit: number;
+    afterBattle: Date | null;
+    minOs: number | null;
+    maxOs: number | null;
   }): Promise<BattleWithPlayers[]> {
     const conditions: SQLWrapper[] = [];
 
@@ -257,10 +261,7 @@ export class BattleService {
 
     console.count("battle");
     if (battleMap !== null) {
-      //consola.log("fine", battleMap);
-      //consola.log('hello hehe')
       const searchedMaps = await this.mapService.getMapByName(battleMap);
-      //consola.log('hello hehe', searchedMaps)
       if (searchedMaps === null) return [];
 
       const possibleMapIds =
@@ -268,9 +269,15 @@ export class BattleService {
           ? [searchedMaps.key.mapId!]
           : searchedMaps.values.map((v) => v.mapId!);
 
-      consola.log("hello hehe", possibleMapIds);
       conditions.push(inArray(battleTable.mapId, possibleMapIds));
     }
+
+    //if (maxOs !== null) {
+    //  conditions.push(lte(battleTable.averageOs, maxOs));
+    //}
+    //if (minOs !== null) {
+    //  conditions.push(gte(battleTable.averageOs, minOs));
+    //}
 
     console.count("battle");
     const whereClause = and(
@@ -283,7 +290,7 @@ export class BattleService {
 
     const battles: BattleWithPlayers[] = [];
     let leftElements = limit;
-    let currentLastBattle: Date | null = null;
+    let currentLastBattle: Date | null = afterBattle;
     while (leftElements > 0) {
       const take = leftElements > 500 ? 500 : leftElements;
       leftElements -= take;
