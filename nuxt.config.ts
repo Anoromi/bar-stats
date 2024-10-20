@@ -12,7 +12,6 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "nuxt-echarts",
     "@nuxt/test-utils/module",
-    "@nuxthub/core",
   ],
   shadcn: {
     prefix: "",
