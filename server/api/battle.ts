@@ -27,31 +27,36 @@ export default defineCachedEventHandler<
   Promise<BattleWithPlayers[]>
 >(
   async (event) => {
-    console.log(await getQuery(event));
-    const requestParams = await getValidatedQuery(event, querySchema.parse);
-    console.log("requesting battles with params", requestParams);
-    const battleService = useBattleService();
+    try {
+      console.log(await getQuery(event));
+      const requestParams = await getValidatedQuery(event, querySchema.parse);
+      console.log("requesting battles with params", requestParams);
+      const battleService = useBattleService();
 
-    let users = requestParams.users;
-    if (users?.length === 0) users = null;
-    let minOs : number | null = null
-    let maxOs : number | null = null
-    if(requestParams.osSelection === '<=20') {
-      maxOs = 20
-    }
-    else if(requestParams.osSelection === '>=20') {
-      minOs = 20
-    }
+      let users = requestParams.users;
+      if (users?.length === 0) users = null;
+      let minOs: number | null = null;
+      let maxOs: number | null = null;
+      if (requestParams.osSelection === "<=20") {
+        maxOs = 20;
+      } else if (requestParams.osSelection === ">=20") {
+        minOs = 20;
+      }
 
-    return await battleService.getBattles({
-      userIds: users,
-      battleMap: requestParams.map,
-      battleType: requestParams.battleType,
-      limit: requestParams.limit ?? defaultLimit,
-      afterBattle: requestParams.afterBattle,
-      minOs: minOs,
-      maxOs: maxOs
-    });
+      return await battleService.getBattles({
+        userIds: users,
+        battleMap: requestParams.map,
+        battleType: requestParams.battleType,
+        limit: requestParams.limit ?? defaultLimit,
+        afterBattle: requestParams.afterBattle,
+        minOs: minOs,
+        maxOs: maxOs,
+      });
+    } catch (e) {
+      console.error("Error");
+      console.error(e);
+      throw e;
+    }
   },
   {
     //maxAge: 60 * 60 * 24,
