@@ -18,7 +18,7 @@ export default defineNuxtConfig({
     componentDir: "./components/ui",
   },
   imports: {
-    dirs: ['./composables']
+    dirs: ["./composables"],
   },
   components: [
     {
@@ -64,17 +64,14 @@ export default defineNuxtConfig({
   },
 
   vite: {
-    
     esbuild: {
-      
       //target: 'esnext'
       //target: ''
       //supported: {
       //  "top-level-await": true,
       //},
     },
-    
-    
+
     plugins: [
       wasm(),
       topLevelAwait({
@@ -83,7 +80,7 @@ export default defineNuxtConfig({
       }),
     ],
     worker: {
-      format: 'es',
+      format: "es",
       plugins: () => [wasm(), topLevelAwait()],
     },
     optimizeDeps: {
@@ -91,7 +88,7 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
-    dbURL: "http://127.0.0.1:8080",
-    dbAuthToken: "",
+    NUXT_DB_URL: "http://127.0.0.1:8080",
+    NUXT_DB_AUTH_TOKEN: null,
   },
 });
