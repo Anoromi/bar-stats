@@ -29,7 +29,7 @@ async function requestBattles(params: GetBattleQuery) {
   return battles;
 }
 
-const BATTLE_REQUEST_ITEM_LIMIT = 5000;
+const BATTLE_REQUEST_ITEM_LIMIT = 500;
 export async function getBattles(params: GetBattleQuery) {
   let currentLastBattle: Date | null = null;
   let leftElements = params.limit ?? BATTLE_REQUEST_ITEM_LIMIT;
