@@ -12,7 +12,7 @@ const playerSchema = z.object({
     .refine((s) => s.startsWith("[") && s.endsWith("]"), {
       message: "Skill starts or ends with a non [ ] characters",
     })
-    .transform((s) => parseInt(s.replaceAll("[", "").replaceAll("]", "")))
+    .transform((s) => parseFloat(s.replaceAll("[", "").replaceAll("]", "")))
     .nullish(),
   userId: z.number().int().nullish(),
 });
