@@ -11,6 +11,5 @@ export function avgPoint<Point>(
     y += extracted[1] / points.length;
   }
 
-  console.log("avg", x, y);
   return [x, y];
 }
