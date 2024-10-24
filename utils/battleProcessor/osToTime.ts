@@ -4,7 +4,12 @@ export function calculateAvgOsToTime(
   battles: BattleWithPlayers[],
   meanSize: number = 100,
 ): [os: number, time: number][] {
-  return calculateParamToTime(battles, meanSize, (v) => v.key.averageOs!);
+  return calculateParamToTime(
+    battles,
+    meanSize,
+    (battle) => battle.key.averageOs!,
+    (battle) => battle.key.durationMs / 1000 / 60,
+  );
 }
 
 function minDiff(battles: BattleWithPlayers) {
@@ -19,7 +24,6 @@ function minDiff(battles: BattleWithPlayers) {
       minSkill = playerSkill;
     }
   }
-  //console.log('skill diff', battles, maxSkill, minSkill)
   return maxSkill - minSkill;
 }
 
@@ -27,33 +31,57 @@ export function calculateOsDiffToTime(
   battles: BattleWithPlayers[],
   meanSize: number = 100,
 ): [os: number, time: number][] {
-  return calculateParamToTime(battles, meanSize, minDiff);
+  return calculateParamToTime(
+    battles,
+    meanSize,
+    minDiff,
+    (v) => v.key.durationMs,
+  );
 }
 
 export function calculateMinOsToTime(
   battles: BattleWithPlayers[],
   meanSize: number = 100,
 ): [os: number, time: number][] {
-  return calculateParamToTime(battles, meanSize, (v) => {
-    return Math.min(...v.values.map(player => player.skill).filter(skill => skill !== null))
-  });
+  return calculateParamToTime(
+    battles,
+    meanSize,
+    (v) => {
+      return Math.min(
+        ...v.values
+          .map((player) => player.skill)
+          .filter((skill) => skill !== null),
+      );
+    },
+    (battle) => battle.key.durationMs / 1000 / 60,
+  );
 }
 
 export function calculateMaxOsToTime(
   battles: BattleWithPlayers[],
   meanSize: number = 100,
 ): [os: number, time: number][] {
-  return calculateParamToTime(battles, meanSize, (v) => {
-    return Math.max(...v.values.map(player => player.skill).filter(skill => skill !== null))
-  });
+  return calculateParamToTime(
+    battles,
+    meanSize,
+    (v) => {
+      return Math.max(
+        ...v.values
+          .map((player) => player.skill)
+          .filter((skill) => skill !== null),
+      );
+    },
+    (battle) => battle.key.durationMs / 1000 / 60,
+  );
 }
 
-function calculateParamToTime(
-  battles: BattleWithPlayers[],
+export function calculateParamToTime<T>(
+  values: T[],
   meanSize: number = 100,
-  extractValue: (a: BattleWithPlayers) => number | null,
+  extractValue: (a: T) => number | null,
+  extractTime: (a: T) => number,
 ) {
-  const sortedBattles = battles.sort((a, b) => {
+  const sortedBattles = values.sort((a, b) => {
     const va = extractValue(a);
     const vb = extractValue(b);
     if (va === null && vb === null) return 0;
@@ -70,7 +98,7 @@ function calculateParamToTime(
     const value = extractValue(battle);
     if (value !== null) {
       osArr.push(value);
-      timeArr.push(battle.key.durationMs / 1000 / 60);
+      timeArr.push(extractTime(battle));
     }
   }
 
@@ -78,8 +106,8 @@ function calculateParamToTime(
   console.log(timeArr);
 
   const smoothedTimeArr = movingMean(timeArr, meanSize);
-  console.log('smoothed', smoothedTimeArr);
-  console.log('osArr', osArr);
+  console.log("smoothed", smoothedTimeArr);
+  console.log("osArr", osArr);
 
   const results: [number, number][] = [];
 
@@ -95,7 +123,7 @@ function calculateParamToTime(
       lastTimeSum! += smoothedTime;
       lastTimeCount! += 1;
       continue;
-    } 
+    }
     if (lastOs !== null) {
       results.push([lastOs, lastTimeSum! / lastTimeCount!]);
     }
@@ -104,7 +132,7 @@ function calculateParamToTime(
     lastTimeSum = smoothedTime;
     lastTimeCount = 1;
   }
-  console.log('results', results)
+  console.log("results", results);
   return results;
 }
 
