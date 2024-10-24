@@ -14,7 +14,6 @@ import {
 } from "drizzle-orm";
 import type { BattleEntity, BattleTeamEntity } from "../database/schema";
 import { battleTable } from "../database/schema";
-import consola from "consola";
 import type { Grouped } from "../array/groupBy";
 import type {
   BattleDto,
@@ -192,7 +191,6 @@ export class BattleService {
       }
     }
 
-    console.log("userMap", userMap);
     const grouped: BattleWithPlayers[] = [];
 
     for (const v of battleMap) {
@@ -227,8 +225,6 @@ export class BattleService {
 
     console.count("battle");
     if (userIds !== null) {
-      //conditions.push(inArray(userToBattleTable.userId, userIds));
-
       const selectedUserId = "selectedUserId";
 
       const userSelectionOperator = eq(
@@ -272,12 +268,12 @@ export class BattleService {
       conditions.push(inArray(battleTable.mapId, possibleMapIds));
     }
 
-    //if (maxOs !== null) {
-    //  conditions.push(lte(battleTable.averageOs, maxOs));
-    //}
-    //if (minOs !== null) {
-    //  conditions.push(gte(battleTable.averageOs, minOs));
-    //}
+    if (maxOs !== null) {
+      conditions.push(lte(battleTable.averageOs, maxOs));
+    }
+    if (minOs !== null) {
+      conditions.push(gte(battleTable.averageOs, minOs));
+    }
 
     console.count("battle");
     const whereClause = and(
@@ -303,12 +299,6 @@ export class BattleService {
 
       if (next.length === 0) break;
 
-      //const grouped = group2ByMappedWithMap(next, {
-      //  selectGroupKey: (value) => value.battle,
-      //  selectGroupValue: (value) => value.player,
-      //  selectGroupValue2: (value) => value.team,
-      //  getMappableKey: (group) => group.id,
-      //});
       currentLastBattle = next.at(-1)!.key.startTime;
 
       battles.push(...next);
