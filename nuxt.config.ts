@@ -90,6 +90,6 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     NUXT_DB_URL: "http://127.0.0.1:8080",
-    NUXT_DB_AUTH_TOKEN: null,
+    NUXT_DB_AUTH_TOKEN: '',
   },
 });
