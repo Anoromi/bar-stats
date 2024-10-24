@@ -8,15 +8,10 @@ export let db: LibSQLDatabase<typeof schema> =
   null as unknown as LibSQLDatabase<typeof schema>;
 
 export function initDb(url: string, authToken?: string) {
-  console.log("checking db");
   if (db === null) {
-    console.log("initializing db");
-    console.log('url', url, authToken)
     try {
     const client = createClient({ url: url, authToken: authToken });
     db = drizzle(client, { schema });
-    console.log(client)
-    console.log(db)
     } catch (error) {
       console.error('Could not connect to database', error);
     }
