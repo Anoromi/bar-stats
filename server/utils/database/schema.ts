@@ -1,4 +1,4 @@
-import { and, eq, relations, sql } from "drizzle-orm";
+import { relations, sql } from "drizzle-orm";
 import {
   sqliteTable,
   text,
@@ -23,6 +23,8 @@ export const battleTable = sqliteTable(
     winningTeam: integer("winning-team"),
     hasBots: integer("has-bots", { mode: "boolean" }).notNull(),
     endedNormally: integer("ended-normally", { mode: "boolean" }).notNull(),
+    isRanked: integer("is-ranked", { mode: "boolean" }).notNull(),
+    waterIsLava: integer("water-is-lava", { mode: "boolean" }).notNull(),
     playerCount: integer("player-count").notNull(),
     battleType: text("battle-type").notNull(),
     preset: text("preset"),
@@ -34,8 +36,7 @@ export const battleTable = sqliteTable(
         "normal-start-time-with-map-id-index",
       )
         .on(table.mapId, table.startTime)
-        .where(sql`${table.endedNormally} = 1 AND ${table.hasBots} = 0`)
-        ,
+        .where(sql`${table.endedNormally} = 1 AND ${table.hasBots} = 0`),
       normalStartTimeIndex: index("normal-Start-time-index")
         .on(table.startTime)
         .where(sql`${table.endedNormally} = 1 AND ${table.hasBots} = 0`),
@@ -43,6 +44,8 @@ export const battleTable = sqliteTable(
       startTimeIndexWithMapId: index("start-time-with-map-id-index").on(
         table.endedNormally,
         table.hasBots,
+        table.isRanked,
+        table.waterIsLava,
         table.mapId,
         table.battleType,
         table.startTime,
@@ -50,6 +53,8 @@ export const battleTable = sqliteTable(
       startTimeIndex: index("start-time-index").on(
         table.endedNormally,
         table.hasBots,
+        table.isRanked,
+        table.waterIsLava,
         table.battleType,
         table.startTime,
       ),
