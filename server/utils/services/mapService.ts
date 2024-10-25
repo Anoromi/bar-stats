@@ -1,32 +1,39 @@
 import { between, eq, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import type { Grouped } from "../array/groupBy";
+import type { SchemaTransaction } from "../database/transactionType";
 
-export const getMapsQuery = (ids: number[]) => {
+export const getMapsQuery = (ids: number[], tx?: SchemaTransaction) => {
   const child = alias(mapTable, "child");
-  return db
+  return (tx ?? db)
     .select()
     .from(mapTable)
     .where(inArray(mapTable.id, ids))
     .innerJoin(child, eq(child.subclassOfId, mapTable.id));
 };
 
-export const getMapsByMapIdQuery = (mapIds: number[]) => {
-  return db.select().from(mapTable).where(inArray(mapTable.mapId, mapIds));
+export const getMapsByMapIdQuery = (
+  mapIds: number[],
+  tx?: SchemaTransaction,
+) => {
+  return (tx ?? db)
+    .select()
+    .from(mapTable)
+    .where(inArray(mapTable.mapId, mapIds));
 };
 
-export const findMapByNameQuery = (mapName: string) => {
+export const findMapByNameQuery = (mapName: string, tx?: SchemaTransaction) => {
   const child = alias(mapTable, "child");
-  return db
+  return (tx ?? db)
     .select()
     .from(mapTable)
     .where(eq(mapTable.name, mapName))
     .leftJoin(child, eq(child.subclassOfId, mapTable.id));
 };
 
-export const findMapByNameLikeQuery = (mapName: string) => {
+export const findMapByNameLikeQuery = (mapName: string, tx?: SchemaTransaction) => {
   const maxValue = mapName + String.fromCodePoint(1114111);
-  return db
+  return (tx ?? db)
     .select()
     .from(mapTable)
     .limit(10)
@@ -34,8 +41,8 @@ export const findMapByNameLikeQuery = (mapName: string) => {
 };
 
 export class MapService {
-  async getMaps(ids: number[]) {
-    const result = await getMapsQuery(ids);
+  async getMaps(ids: number[], tx?: SchemaTransaction) {
+    const result = await getMapsQuery(ids, tx);
     return groupByMappedWithMap(result, {
       selectGroupKey: (value) => value.map,
       selectGroupValue: (value) => value.child,
@@ -43,12 +50,12 @@ export class MapService {
     });
   }
 
-  async getMapsByMapId(mapIds: number[]) {
-    return await getMapsByMapIdQuery(mapIds);
+  async getMapsByMapId(mapIds: number[], tx?: SchemaTransaction) {
+    return await getMapsByMapIdQuery(mapIds, tx);
   }
 
-  async getMapByName(mapName: string): Promise<Grouped<MapDto, MapDto> | null> {
-    const result = await findMapByNameQuery(mapName);
+  async getMapByName(mapName: string, tx?: SchemaTransaction): Promise<Grouped<MapDto, MapDto> | null> {
+    const result = await findMapByNameQuery(mapName, tx);
     if (result.length === 0) return null;
     const grouped = groupByMapped(result, {
       selectGroupKey: (value) => value.map,
@@ -63,8 +70,8 @@ export class MapService {
     else return grouped as Grouped<MapDto, MapDto>;
   }
 
-  async getMapSuggestions(mapName: string): Promise<MapDto[]> {
-    const result = findMapByNameLikeQuery(mapName);
+  async getMapSuggestions(mapName: string, tx?: SchemaTransaction): Promise<MapDto[]> {
+    const result = findMapByNameLikeQuery(mapName, tx);
     return result;
   }
 }
