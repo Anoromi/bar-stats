@@ -1,10 +1,11 @@
 <script setup lang="tsx">
-const props = defineProps<{
+const { data, title } = defineProps<{
   data: Record<string, number>;
+  title: string;
 }>();
 
 const factionWinrate = computed(() => {
-  const winrate = props.data;
+  const winrate = data;
   console.log("winrate 1", winrate);
   return Object.keys(winrate)
     .map((faction) => {
@@ -13,17 +14,6 @@ const factionWinrate = computed(() => {
     })
     .filter((v) => v.name !== "Random");
 });
-
-//const canvas = useTemplateRef<ComponentPublicInstance>("winrate-canvas");
-//const primaryColor = ref<string>();
-//watchEffect(() => {
-//  if (canvas.value === null) return;
-//
-//  console.log("$el", canvas.value.$el);
-//  const canvasStyles = getComputedStyle(canvas.value.$el);
-//  console.log("2", getComputedStyle(canvas.value.$el));
-//  primaryColor.value = canvasStyles.getPropertyValue("--primary");
-//});
 
 function getFactionName(name: string) {
   switch (name) {
@@ -54,9 +44,6 @@ const option = computed<ECOption>(() => {
   });
 
   return {
-    title: {
-      text: "Faction win factor",
-    },
     xAxis: {
       type: "category",
       data: factionWinrate.value.map((v) => getFactionName(v.name)),
@@ -80,12 +67,15 @@ const option = computed<ECOption>(() => {
 </script>
 
 <template>
-  <VChart
-    ref="winrate-canvas"
-    :option="option"
-    :init-options="{
-      height: 400,
-    }"
-    class="h-[400px]"
-  ></VChart>
+  <div>
+    <h4 class="px-4 pt-2 text-xl font-bold">{{ title }}</h4>
+    <VChart
+      ref="winrate-canvas"
+      :option="option"
+      :init-options="{
+        height: 400,
+      }"
+      class="h-[400px]"
+    ></VChart>
+  </div>
 </template>

@@ -17,9 +17,6 @@ const factionWinrate = computed(() => {
 const option = computed<ECOption>(() => {
   console.log("winrates", factionWinrate.value);
   return {
-    title: {
-      text: "Team win rate",
-    },
     xAxis: {
       type: "category",
       data: factionWinrate.value.map((v) => `Team ${v.name}`),
@@ -42,12 +39,17 @@ const option = computed<ECOption>(() => {
 });
 </script>
 <template>
-  <VChart
+  <div>
+    <h4 class="px-4 pt-2 text-xl font-bold">
+      Team win rate
+    </h4>
+    <VChart
     ref="winrate-canvas"
     :option="option"
     :init-options="{
-      height: 400,
+    height: 400,
     }"
     class="h-[400px]"
-  ></VChart>
+    ></VChart>
+  </div>
 </template>

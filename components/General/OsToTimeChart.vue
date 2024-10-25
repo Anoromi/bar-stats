@@ -15,9 +15,6 @@ const size = useElementSize(divElement);
 const option = computed<ECOption | null>(() => {
   if (size.width.value === 0) return null;
   return {
-    title: {
-      text: props.title,
-    },
     xAxis: {
       type: "value",
       name: props.xLabel,
@@ -25,8 +22,8 @@ const option = computed<ECOption | null>(() => {
     yAxis: {
       type: "value",
       name: "time",
-      min: props.min,
-      max: props.max
+      //min: props.min,
+      //max: props.max
     },
     series: [
       {
@@ -44,6 +41,9 @@ const option = computed<ECOption | null>(() => {
 
 <template>
   <div ref="div" class="h-[600px] w-full">
+    <h4 class="px-4 pt-2 text-xl font-bold">
+      {{props.title}}
+    </h4>
     <VChart v-if="option !== null" :option="option" :init-options="{ height: 600 }" class="h-[600px]"></VChart>
   </div>
 </template>
