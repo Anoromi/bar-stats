@@ -1,36 +1,51 @@
 import type { GetBattleQuery } from "~/server/api/battle";
-import { generateParams } from "./generateParams";
+import { generateURLParams } from "./generateParams";
 import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 
-async function requestBattles(params: GetBattleQuery) {
+export type GetBattlesClientParams = {
+  map: string | null;
+  limit: number | null;
+  battleType: string;
+  users: number[] | null;
+  afterBattle: Date | null;
+  osSelection: GetBattleQuery["osSelection"];
+  rankedGame: boolean;
+  waterIsLava: boolean;
+};
+
+async function requestBattles(params: GetBattlesClientParams) {
   const battles = await fetch(
     "/api/battle?" +
-      new URLSearchParams(
-        generateParams<GetBattleQuery>(
-          ["map", params.map],
-          ["limit", params.limit?.toString()],
-          ["users", params.users?.map((v) => v.toString())],
-          ["battleType", params.battleType],
-          [
-            "afterBattle",
-            params.afterBattle ? params.afterBattle.toString() : null,
-          ],
-          [
-            "osSelection", params.osSelection
-          ]
-        ),
+      generateURLParams<GetBattleQuery>(
+        ["map", params.map],
+        ["limit", params.limit?.toString()],
+        ["users", params.users?.map((v) => v.toString())],
+        ["battleType", params.battleType],
+        [
+          "afterBattle",
+          params.afterBattle ? params.afterBattle.toString() : null,
+        ],
+        ["osSelection", params.osSelection],
+        ["rankedGame", params.rankedGame.toString()],
+        ["waterIsLava", params.waterIsLava.toString()],
       ),
     {
       headers: {
         "Content-Type": "application/json",
       },
+      cache: import.meta.dev !== true ? "default" : "no-cache",
     },
-  ).then(async (v) => (await v.json()) as BattleWithPlayers[]);
+  )
+    .then(async (v) => (await v.json()) as BattleWithPlayers[])
+    .then((v) => {
+      console.log("received battles", v);
+      return v;
+    });
   return battles;
 }
 
 const BATTLE_REQUEST_ITEM_LIMIT = 500;
-export async function getBattles(params: GetBattleQuery) {
+export async function getBattles(params: GetBattlesClientParams) {
   let currentLastBattle: Date | null = null;
   let leftElements = params.limit ?? BATTLE_REQUEST_ITEM_LIMIT;
   const battles: BattleWithPlayers[] = [];
@@ -44,7 +59,7 @@ export async function getBattles(params: GetBattleQuery) {
     const next = await requestBattles({
       ...params,
       afterBattle: currentLastBattle,
-      limit: take
+      limit: take,
     });
 
     if (next.length === 0) break;
