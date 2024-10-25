@@ -37,8 +37,8 @@ export default defineNuxtConfig({
       config: {
         crons: [
           {
-            path: "/api/update",
-            schedule: "0 0 * * *",
+            path: "/api/syncDatabase?highLength=false",
+            schedule: "0 * * * *",
           },
         ],
       },
