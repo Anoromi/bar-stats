@@ -35,7 +35,7 @@ export function calculateOsDiffToTime(
     battles,
     meanSize,
     minDiff,
-    (v) => v.key.durationMs,
+    (v) => v.key.durationMs / 1000 / 60,
   );
 }
 
