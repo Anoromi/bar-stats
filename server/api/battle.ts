@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { headerArrayParam } from "../utils/zod/arrayOrValue";
 import type { BattleWithPlayers } from "../utils/services/battleService";
+import { booleanQueryParam } from "../utils/zod/booleanQuery";
 
 const querySchema = z.object({
   users: headerArrayParam(z.number({ coerce: true }).int())
@@ -15,10 +16,12 @@ const querySchema = z.object({
     .transform((v) => new Date(v))
     .nullish()
     .default(null),
-  osSelection: z.enum(["<=20", ">=20"]).nullish().default(null),
+  osSelection: z.enum(["<=20", ">=20", ">=25"]).nullish().default(null),
+  waterIsLava: booleanQueryParam(),
+  rankedGame: booleanQueryParam(),
 });
 
-export type GetBattleQuery = z.infer<typeof querySchema>;
+export type GetBattleQuery = z.input<typeof querySchema>;
 
 const defaultLimit = 100;
 
@@ -41,6 +44,8 @@ export default defineCachedEventHandler<
         maxOs = 20;
       } else if (requestParams.osSelection === ">=20") {
         minOs = 20;
+      } else if (requestParams.osSelection === ">=25") {
+        minOs = 25;
       }
 
       return await battleService.getBattles({
@@ -49,6 +54,8 @@ export default defineCachedEventHandler<
         battleType: requestParams.battleType,
         limit: requestParams.limit ?? defaultLimit,
         afterBattle: requestParams.afterBattle,
+        waterIsLava: requestParams.waterIsLava ?? false,
+        rankedGame: requestParams.rankedGame ?? true,
         minOs: minOs,
         maxOs: maxOs,
       });
@@ -59,7 +66,7 @@ export default defineCachedEventHandler<
     }
   },
   {
+    maxAge: import.meta.dev ? 1 : 60 * 60 * 24,
     //maxAge: 60 * 60 * 24,
-    //swr: false,
   },
 );
