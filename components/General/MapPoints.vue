@@ -1,7 +1,6 @@
 <script setup lang="tsx">
 import { registerMap } from "echarts";
 import type { ScatterSeriesOption } from "echarts/charts";
-import type { ElementEvent } from "echarts/core";
 import { cn } from "~/lib/utils";
 import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 import {
@@ -22,6 +21,10 @@ import {
 } from "~/utils/other/uniformColor";
 import { useClientWorker } from "~/utils/worker/useClientWorker";
 import { assert } from "~/utils/other/assert";
+import type { VChart } from "#build/components";
+import { sqEuclideanDistance } from "~/utils/other/euclideanDistance";
+import type { SelectChangedPayload } from "echarts/core";
+import OsToTimeChart from "./OsToTimeChart.vue";
 
 const props = defineProps<{
   battles: BattleWithPlayers[];
@@ -57,6 +60,39 @@ const mapAspectRatio = computed(() => {
   return props.map.width / props.map.height;
 });
 
+const mapHalfSize = computed(() => {
+  const width = props.map.width * 512;
+  const height = props.map.height * 512;
+  return { width, height };
+});
+
+watchEffect(() => {
+  const href = `https://api.bar-rts.com/maps/${props.map.name}/texture-mq.jpg`;
+  const { width, height } = mapHalfSize.value;
+
+  registerMap(props.map.name, {
+    svg: `<svg viewBox="${0} ${0} ${width} ${height}" xmlns="http://www.w3.org/2000/svg"><image href="${href}" width="${width}" height="${height}" x="${0}" y="${0}"/></svg>`,
+  });
+});
+
+const seriesData = computed(() => {
+  return labels.value.map((label) => {
+    const point = avgPoint(label[1], ([playerIndex, battleIndex]) => {
+      const player = props.battles[battleIndex].values[playerIndex];
+      return [player.startPosX!, player.startPosZ!];
+    });
+    //console.log('extracted', label[1].map(v => extractPlayer(props.battles, v).battleTeamNumber))
+    //console.assert(label[1].map(v => extractPlayer(props.battles, v).battleTeamNumber).length === 1, "Oh no")
+    //console.log(label[1].filter(v => extractPlayer(props.battles, v).battleTeamNumber).length === 1, "Oh no")
+    return {
+      position: point,
+      labelId: label[0],
+      pointCount: label[1].length,
+      teamNumber: extractPlayer(props.battles, label[1][0]).battleTeamNumber,
+    };
+  });
+});
+
 const labelColors = computed(() => {
   if (props.maxTeams > 2) {
     return labels.value.map(
@@ -65,33 +101,38 @@ const labelColors = computed(() => {
     );
   }
   const colors: [string, string, number][] = [];
-  const teamCounts = Array(props.maxTeams).fill(0);
-  for (const [labelValue, players] of labels.value) {
-    const player = extractPlayer(props.battles, players[0]);
-    if (player.battleTeamNumber === 0) {
-      colors.push([
-        ...getUniformColorRed(teamCounts[player.battleTeamNumber]),
-        labelValue,
-      ]);
-    } else {
-      colors.push([
-        ...getUniformColorBlue(teamCounts[player.battleTeamNumber]),
-        labelValue,
-      ]);
-    }
-    teamCounts[player.battleTeamNumber]++;
-  }
-  return colors;
-});
+  const teamIndex = Array(props.maxTeams).fill(0);
+  const series = [...seriesData.value.entries()];
+  const center = [
+    //0, 0,
+    mapHalfSize.value.width / 2,
+    mapHalfSize.value.height / 2,
+  ] as const satisfies unknown[];
+  console.log("mapcenter", center);
 
-watchEffect(() => {
-  const href = `https://api.bar-rts.com/maps/${props.map.name}/texture-mq.jpg`;
-  const width = props.map.width * 512;
-  const height = props.map.height * 512;
-
-  registerMap(props.map.name, {
-    svg: `<svg viewBox="${0} ${0} ${width} ${height}" xmlns="http://www.w3.org/2000/svg"><image href="${href}" width="${width}" height="${height}" x="${0}" y="${0}"/></svg>`,
+  series.sort(([_, a], [_2, b]) => {
+    const aDist = sqEuclideanDistance(a.position, center, (v) => v);
+    const bDist = sqEuclideanDistance(b.position, center, (v) => v);
+    return aDist - bDist;
   });
+
+  console.log("series", series);
+  for (const [index, { labelId: labelValue, teamNumber }] of series) {
+    if (teamNumber === 0) {
+      colors[index] = [
+        ...getUniformColorRed(teamIndex[teamNumber]),
+        labelValue,
+      ];
+    } else {
+      colors[index] = [
+        ...getUniformColorBlue(teamIndex[teamNumber]),
+        labelValue,
+      ];
+    }
+    teamIndex[teamNumber]++;
+  }
+  console.log("colors", colors);
+  return colors;
 });
 
 const options = computed<ECOption>(() => {
@@ -106,6 +147,7 @@ const options = computed<ECOption>(() => {
     grid: {
       show: false,
     },
+
     geo: {
       map: props.map.name,
       roam: false,
@@ -133,32 +175,33 @@ const options = computed<ECOption>(() => {
     //    //return labelColors.value[labelIndex][1];
     //  },
     //},
-    series: labels.value.map((v, labelIndex) => {
-      const pointCenter = avgPoint(v[1], ([playerIndex, battleIndex]) => {
-        const player = props.battles[battleIndex].values[playerIndex];
-        return [player.startPosX!, player.startPosZ!];
-      });
+    series: seriesData.value.map((series, i) => {
+      const { position, labelId, pointCount } = series;
       return {
+        name: labelColors.value[i][1],
         coordinateSystem: "geo",
         symbolSize: [20, 20],
         type: "scatter",
-        data: [[pointCenter[0], pointCenter[1], labelIndex]],
-        color: labelColors.value[labelIndex][0],
+        selectedMode: "series",
+
+        data: [[position[0], position[1], labelId]],
+        color: labelColors.value[i][0],
         tooltip: {
           formatter: () => {
-            return `Found ${v[1].length} points <br>
-                    Data ${labelColors.value[labelIndex][1]}
-            `;
+            return `Found ${pointCount} points <br>
+                    Color ${labelColors.value[i][1]}`;
           },
         },
-        emphasis: {
-          focus: "self",
-
+        select: {
+          itemStyle: {
+            borderColor: "#fff",
+            borderWidth: 3,
+          },
         },
         label: {
           show: true,
           formatter: function () {
-            return labelColors.value[labelIndex][1];
+            return labelColors.value[i][1];
           },
           textBorderColor: "#000",
           textBorderWidth: 1.5,
@@ -166,7 +209,7 @@ const options = computed<ECOption>(() => {
           fontSize: 20,
           position: "insideBottom",
           distance: 20,
-          color: labelColors.value[labelIndex][0],
+          color: labelColors.value[i][0],
         },
         itemStyle: {
           borderType: "solid",
@@ -175,16 +218,75 @@ const options = computed<ECOption>(() => {
         },
       } as ScatterSeriesOption;
     }),
+    //series: labels.value.map((v, labelIndex) => {
+    //  const pointCenter = avgPoint(v[1], ([playerIndex, battleIndex]) => {
+    //    const player = props.battles[battleIndex].values[playerIndex];
+    //    return [player.startPosX!, player.startPosZ!];
+    //  });
+    //  return {
+    //    name: labelColors.value[labelIndex][1],
+    //    coordinateSystem: "geo",
+    //    symbolSize: [20, 20],
+    //    type: "scatter",
+    //    selectedMode: "series",
+
+    //    data: [[pointCenter[0], pointCenter[1], labelIndex]],
+    //    color: labelColors.value[labelIndex][0],
+    //    tooltip: {
+    //      formatter: () => {
+    //        return `Found ${v[1].length} points <br>
+    //                Data ${labelColors.value[labelIndex][1]}
+    //        `;
+    //      },
+    //    },
+    //    emphasis: {
+    //      focus: "self",
+    //    },
+    //    select: {
+    //      itemStyle: {
+    //        borderColor: "#fff",
+    //        borderWidth: 3,
+    //      },
+    //    },
+    //    label: {
+    //      show: true,
+    //      formatter: function () {
+    //        return labelColors.value[labelIndex][1];
+    //      },
+    //      textBorderColor: "#000",
+    //      textBorderWidth: 1.5,
+    //      fontWeight: 800,
+    //      fontSize: 20,
+    //      position: "insideBottom",
+    //      distance: 20,
+    //      color: labelColors.value[labelIndex][0],
+    //    },
+    //    itemStyle: {
+    //      borderType: "solid",
+    //      borderColor: "#000",
+    //      borderWidth: 1,
+    //    },
+    //  } as ScatterSeriesOption;
+    //}),
   };
 });
 
-const selectedColors = ref<number[]>([0]);
-function switchColor(index: number) {
-  if (selectedColors.value.includes(index)) {
-    selectedColors.value = selectedColors.value.filter((v) => v != index);
-  } else {
-    selectedColors.value = selectedColors.value.concat(index);
-  }
+const chartRef = useTemplateRef<InstanceType<typeof VChart>>("chart-ref");
+
+const selectedColors = ref<
+  {
+    seriesIndex: number;
+    dataIndex: number[];
+  }[]
+>([]);
+
+function deselectColor(index: number) {
+  const removedItem = selectedColors.value[index];
+  chartRef.value!.chart?.dispatchAction({
+    type: "unselect",
+    seriesIndex: removedItem.seriesIndex,
+    dataIndex: removedItem.dataIndex[0],
+  });
 }
 
 const { worker } = useClientWorker<
@@ -197,7 +299,6 @@ watch(
   labels,
   async () => {
     initialized.value = false;
-    console.log("initing");
 
     await worker.value!.request({
       type: "init",
@@ -207,31 +308,27 @@ watch(
         labelCount: toRaw(props.clusterCount),
       },
     });
-    console.log("inited");
     initialized.value = true;
   },
   {
     immediate: true,
   },
 );
-//const initialized = computedAsync(() => {
-//worker.value?.request
-//})
 
-const { data: clusterData, status: clusterStatus } = useAsyncData(
+const { data: clusterData } = useAsyncData(
   async () => {
     if (!initialized.value) {
       return null;
     }
-    console.log("trying to evaluate");
     const result = await worker.value!.request({
       type: "evaluate",
       params: {
         labels: toRaw(selectedColors.value).map(
-          (v) => labelColors.value[v][2]!,
+          (v) => labelColors.value[v.seriesIndex][2]!,
         ),
       },
     });
+    console.log("map results", result);
     assert(result.type === "evaluate");
     return result.data;
   },
@@ -241,48 +338,86 @@ const { data: clusterData, status: clusterStatus } = useAsyncData(
   },
 );
 
-function testClick(k: ElementEvent) {
-  console.log(k.target.getState("y"));
-  console.log(k);
+function updateSelectedColors(event: SelectChangedPayload) {
+  selectedColors.value = event.selected;
 }
 </script>
 <template>
-  <div class="flex flex-col lg:flex-row lg:gap-x-5">
-    <VChart
-      v-memo="[options]"
-      :option="options"
-      :init-options="{
-        height: 500 / mapAspectRatio,
-        width: 500,
-      }"
-      class="w-[500px] shrink-0 rounded-xl bg-surface outline outline-1 outline-foreground/30"
-      @zr:click="testClick"
-    />
-    <div class="flex flex-col">
-      <div class="flex h-fit flex-wrap items-start justify-start gap-2 pt-6">
-        <Button
-          v-for="(color, i) in labelColors"
-          :key="color[0]"
-          variant="destructive"
-          :class="
-            cn('mb-auto box-border flex gap-x-1', {
-              'bg-surface outline outline-1 outline-primary':
-                selectedColors.includes(i),
-            })
-          "
-          @click="() => switchColor(i)"
+  <div class="flex flex-col rounded-xl bg-surface p-4 shadow-lg">
+    <h4 class="px-4 pt-2 text-xl font-bold">Map data</h4>
+    <div class="mt-4 flex flex-col lg:flex-row lg:gap-x-5">
+      <VChart
+        ref="chart-ref"
+        v-memo="[options]"
+        :option="options"
+        :init-options="{
+          height: 500 / mapAspectRatio,
+          width: 500,
+        }"
+        class="w-[500px] shrink-0 rounded-xl bg-surface outline outline-1 outline-foreground/30"
+        @selectchanged="updateSelectedColors"
+      />
+      <div class="flex flex-col">
+        <div class="flex h-fit flex-wrap items-start justify-start gap-2 pt-6">
+          <Button
+            v-for="(color, i) in selectedColors"
+            :key="labelColors[color.seriesIndex][0]"
+            variant="destructive"
+            :class="
+              cn('mb-auto box-border flex gap-x-1', {
+                'bg-surface outline outline-1 outline-primary':
+                  selectedColors.includes(color),
+              })
+            "
+            @click="() => deselectColor(i)"
+          >
+            <div
+              class="h-4 w-4 rounded-full"
+              :style="{ 'background-color': labelColors[color.seriesIndex][0] }"
+            ></div>
+            {{ labelColors[color.seriesIndex][1] }}
+          </Button>
+          <div v-if="selectedColors.length === 0">
+            <b class="text-lg">Selected datapoints</b>
+          </div>
+        </div>
+        <div
+          v-if="clusterData !== null && selectedColors.length > 0"
+          class="mt-10 text-lg"
         >
-          <div
-            class="h-4 w-4 rounded-full"
-            :style="{ 'background-color': color[0] }"
-          ></div>
-          {{ color[1] }}
-        </Button>
-      </div>
-      <div class="mt-10">
-        <p>Point count {{ clusterData?.pointCount }}</p>
-        <p>Preference {{ clusterData?.positionPreference }}</p>
+          <p><b>Point count:</b> {{ clusterData.pointCount }}</p>
+          <p>
+            <b>Preference:</b> {{ clusterData.positionPreference.toFixed(3) }}
+          </p>
+        </div>
       </div>
     </div>
+    <!-- <GeneralWinrateChart :data="clusterData.factionWinrate" /> -->
+    <template v-if="clusterData !== null">
+      <GeneralWinrateChart
+        v-if="Object.keys(clusterData.factionPreference).length > 0"
+        title="Faction preference"
+        :data="clusterData.factionPreference"
+        class="mt-8"
+      />
+      <GeneralWinrateChart
+        v-if="Object.keys(clusterData.factionWinrate).length > 0"
+        title="Faction winrate"
+        :data="clusterData.factionWinrate"
+        class="mt-8"
+      />
+      <OsToTimeChart
+        v-if="clusterData.osToTime.length > 0"
+        :data="clusterData.osToTime"
+        title="Combined position os to time"
+        x-label="combined os"
+      />
+      <OsToTimeChart
+        v-if="clusterData.osAvgOsDiffToTime.length > 0"
+        :data="clusterData.osAvgOsDiffToTime"
+        title="Combine os difference"
+        x-label="combined os"
+      />
+    </template>
   </div>
 </template>
