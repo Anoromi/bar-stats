@@ -17,9 +17,9 @@ import { calculateTeamWinrate } from "./teamWinrate";
 import { clusterizePlayers } from "./clusterizePlayers";
 import type { LabeledPlayer } from "./labeledPlayers";
 import { max } from "../other/max";
-import { getBattles } from "./getBattles";
+import { getBattles, type GetBattlesClientParams } from "./getBattles";
 
-async function processBattleRequest(params: GetBattleQuery): Promise<{
+async function processBattleRequest(params: GetBattlesClientParams): Promise<{
   battles: BattleWithPlayers[];
   factionWinrate: Record<string, number>;
   teamWinrate?: Record<number, number>;
@@ -121,7 +121,7 @@ async function processSpecificMap(battles: BattleWithPlayers[]): Promise<{
 
 export type BattlesProcessorRequest = {
   type: "battle";
-  params: GetBattleQuery;
+  params: GetBattlesClientParams;
 };
 
 export type BattlesProcessorResponse = {
