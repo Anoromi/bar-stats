@@ -10,7 +10,9 @@ const barReplayListSchema = z.object({
   ),
 });
 
-export async function getBarReplayList(page: number, limit: number = 100) {
+export type BarReplayList = z.infer<typeof barReplayListSchema>
+
+export async function getBarReplayList(page: number, limit: number = 100) : Promise<BarReplayList> {
   return barReplayListSchema.parse(
     await $fetch(
       "https://api.bar-rts.com/replays?" +
@@ -18,6 +20,10 @@ export async function getBarReplayList(page: number, limit: number = 100) {
           page: page.toString(),
           limit: limit.toString(),
         }).toString(),
+
+      {
+        retry: 5
+      }
     ),
   );
 }

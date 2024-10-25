@@ -37,6 +37,9 @@ const barReplaySchema = z.object({
     ranked_game: z.string().refine((v) => v === "0" || v === "1", {
       message: "Value should be either 0 or 1",
     }),
+    map_waterislava: z.string().refine((v) => v === "0" || v === "1", {
+      message: "Value should be either 0 or 1",
+    }),
   }),
   preset: z.string().nullish(),
   awards: z
@@ -114,8 +117,9 @@ export type BarReplay = z.infer<typeof barReplaySchema>;
 
 export async function getBarReplay(id: string) : Promise<BarReplay> {
   const result = await $fetch(`https://api.bar-rts.com/replays/${id}`, {
-    retry: 4,
-    retryDelay: 1000,
+    retry: 20,
+    retryDelay: 500,
+    
   });
   return barReplaySchema.parse(result);
 }
