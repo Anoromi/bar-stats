@@ -212,6 +212,9 @@ export class BattleService {
     afterBattle,
     minOs,
     maxOs,
+    waterIsLava,
+    rankedGame
+
   }: {
     userIds: number[] | null;
     battleMap: string | null;
@@ -220,6 +223,8 @@ export class BattleService {
     afterBattle: Date | null;
     minOs: number | null;
     maxOs: number | null;
+    waterIsLava: boolean;
+    rankedGame: boolean;
   }): Promise<BattleWithPlayers[]> {
     const conditions: SQLWrapper[] = [];
 
@@ -280,6 +285,8 @@ export class BattleService {
       eq(battleTable.endedNormally, true),
       eq(battleTable.hasBots, false),
       eq(userToBattleTable.isSpectator, false),
+      eq(battleTable.isRanked, rankedGame),
+      eq(battleTable.waterIsLava, waterIsLava),
       ...conditions,
       ...(battleType != null ? [eq(battleTable.battleType, battleType)] : []),
     );
