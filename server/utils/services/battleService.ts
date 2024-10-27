@@ -19,9 +19,10 @@ import type {
   BattleDto,
   BattleDtoInsert,
   BattleTeamDto,
+  MapDto,
   ProcessingUser,
 } from "../dto/dto";
-import type { MapService } from "#imports";
+import type { MapService } from "./mapService";
 
 export const lastBattleQuery = () =>
   db
@@ -213,8 +214,7 @@ export class BattleService {
     minOs,
     maxOs,
     waterIsLava,
-    rankedGame
-
+    rankedGame,
   }: {
     userIds: number[] | null;
     battleMap: string | null;
@@ -268,7 +268,7 @@ export class BattleService {
       const possibleMapIds =
         searchedMaps.values.length === 0
           ? [searchedMaps.key.mapId!]
-          : searchedMaps.values.map((v) => v.mapId!);
+          : searchedMaps.values.map((v: MapDto) => v.mapId!);
 
       conditions.push(inArray(battleTable.mapId, possibleMapIds));
     }
