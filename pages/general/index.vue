@@ -10,7 +10,7 @@ import { useClientWorker } from "~/utils/worker/useClientWorker";
 import { toast } from "~/components/ui/toast";
 
 const allowedDataLimits = ["500", "1000", "5000"] as const satisfies unknown[];
-const allowedOsOptions = ["<=20", ">=20", ">=25"] as const satisfies unknown[];
+const allowedOsOptions = ["<=20", ">=20", ">=25", ">=15"] as const satisfies unknown[];
 const binaryOptions = ["Yes", "No"] as const satisfies unknown[];
 
 const formSchema = toTypedSchema(
@@ -89,8 +89,7 @@ function cleanForm() {
     <div class="flex w-full flex-1 flex-col xl:flex-row xl:justify-center">
       <form
         class="mb-4 mt-4 flex h-max flex-col gap-y-4 rounded-2xl p-4 sm:mt-10 md:max-w-96 xl:w-96 xl:bg-surface xl:shadow-md"
-        @submit="onSubmit"
-      >
+        @submit="onSubmit">
         <legend class="mb-2 text-lg font-bold">Filter</legend>
         <GeneralMapSelector name="map"></GeneralMapSelector>
         <!-- <GeneralUserSelector name="users"></GeneralUserSelector> -->
@@ -104,83 +103,50 @@ function cleanForm() {
             <FormMessage />
           </FormItem>
         </FormField>
-        <GeneralRadioTabsInput
-          name="limit"
-          :values="allowedDataLimits.map((v) => ({ label: v, value: v }))"
-          label="Player limit"
-        >
+        <GeneralRadioTabsInput name="limit" :values="allowedDataLimits.map((v) => ({ label: v, value: v }))"
+          label="Player limit">
           <template #description>
             All data is sent to you. Loading might be slow
           </template>
         </GeneralRadioTabsInput>
-        <GeneralRadioTabsInput
-          name="osSelection"
-          :values="[
-            { label: 'Any', value: undefined },
-            ...allowedOsOptions.map((v) => ({ label: v, value: v }) as const),
-          ]"
-          label="Average os"
-        ></GeneralRadioTabsInput>
-        <GeneralRadioTabsInput
-          name="isRanked"
-          :values="binaryOptions.map((v) => ({ label: v, value: v }))"
-          label="Ranked game"
-        >
+        <GeneralRadioTabsInput name="osSelection" :values="[
+          { label: 'Any', value: undefined },
+          ...allowedOsOptions.map((v) => ({ label: v, value: v }) as const),
+        ]" label="Average os"></GeneralRadioTabsInput>
+        <GeneralRadioTabsInput name="isRanked" :values="binaryOptions.map((v) => ({ label: v, value: v }))"
+          label="Ranked game">
         </GeneralRadioTabsInput>
-        <GeneralRadioTabsInput
-          name="waterIsLava"
-          :values="binaryOptions.map((v) => ({ label: v, value: v }))"
-          label="Water is lava"
-        ></GeneralRadioTabsInput>
+        <GeneralRadioTabsInput name="waterIsLava" :values="binaryOptions.map((v) => ({ label: v, value: v }))"
+          label="Water is lava"></GeneralRadioTabsInput>
         <!--         <GeneralDateInput name="startDate"></GeneralDateInput> -->
 
         <div class="flex gap-x-2">
-          <Button
-            type="button"
-            variant="outline"
-            class="flex-1"
-            @click="cleanForm"
-            >Clear</Button
-          >
+          <Button type="button" variant="outline" class="flex-1" @click="cleanForm">Clear</Button>
           <Button type="submit" variant="default" class="flex-1">Search</Button>
         </div>
       </form>
 
-      <div
-        class="flex min-w-0 flex-1 flex-col gap-y-8 py-10 pr-5 xl:pl-20"
-      >
+      <div class="flex min-w-0 flex-1 flex-col gap-y-8 py-10 pr-5 xl:pl-20">
         <!-- <LazyGeneralClusterTest></LazyGeneralClusterTest> -->
         <template v-if="results !== undefined">
           <b class="block text-xl">
             Found {{ results.data.battles.length }} battles
           </b>
-          <LazyGeneralMapPoints
-            v-if="results.data.labeledPlayers !== undefined"
-            :battles="results.data.battles"
-            :player-clusters="results.data.labeledPlayers!"
-            :map="{
+          <LazyGeneralMapPoints v-if="results.data.labeledPlayers !== undefined" :battles="results.data.battles"
+            :player-clusters="results.data.labeledPlayers!" :map="{
               name: results.data.map!.fileName!,
               height: results.data.map!.height!,
               width: results.data.map!.width!,
-            }"
-            :max-teams="results.data.maxTeamCount"
-            :cluster-count="results.data.clusterCount!"
-          >
+            }" :max-teams="results.data.maxTeamCount" :cluster-count="results.data.clusterCount!">
           </LazyGeneralMapPoints>
           <div class="rounded-xl bg-surface px-2 pt-4 shadow-lg">
-            <Tabs default-value="average-os-2" class="min-h-[600px]">
+            <Tabs default-value="average-os" class="min-h-[600px]">
               <TabsList class="flex">
                 <TabsTrigger value="osdiff" class="text-base">
-                  Os diff
+                  Max - Min os
                 </TabsTrigger>
                 <TabsTrigger value="average-os" class="text-base">
-                  Average os 20x
-                </TabsTrigger>
-                <TabsTrigger value="average-os-2" class="text-base">
-                  Average os 10x
-                </TabsTrigger>
-                <TabsTrigger value="average-os-3" class="text-base">
-                  Average os 5x
+                  Average os
                 </TabsTrigger>
                 <TabsTrigger value="min-os" class="text-base">
                   Min os
@@ -190,77 +156,33 @@ function cleanForm() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="osdiff">
-                <LazyGeneralOsToTimeChart
-                  :data="results.data.osDiffToTime"
-                  :title="'Os diff'"
-                  :x-label="'maxOs - minOs'"
-                >
+                <LazyGeneralOsToTimeChart :data="results.data.osDiffToTime" :title="'Os diff'"
+                  :x-label="'os difference'">
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
               <TabsContent value="average-os">
-                <LazyGeneralOsToTimeChart
-                  :data="results.data.osToTime"
-                  :title="'Average os by 20x roughness'"
-                  :x-label="'average os'"
-                  :max="50"
-                  :min="0"
-                >
-                </LazyGeneralOsToTimeChart>
-              </TabsContent>
-              <TabsContent value="average-os-2">
-                <LazyGeneralOsToTimeChart
-                  :data="results.data.osToTime2"
-                  :title="'Average os by 10x roughness'"
-                  :x-label="'average os'"
-                  :max="50"
-                  :min="0"
-                >
-                </LazyGeneralOsToTimeChart>
-              </TabsContent>
-              <TabsContent value="average-os-3">
-                <LazyGeneralOsToTimeChart
-                  :data="results.data.osToTime3"
-                  :title="'Average os by 5x roughness'"
-                  :x-label="'average os'"
-                  :max="50"
-                  :min="0"
-                >
+                <LazyGeneralOsToTimeChart :data="results.data.osToTime" :title="'Average os'" :x-label="'average os'"
+                  :max="50" :min="0">
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
               <TabsContent value="min-os">
-                <LazyGeneralOsToTimeChart
-                  :data="results.data.minOs"
-                  :title="'Min os'"
-                  :x-label="'min os'"
-                  :max="50"
-                  :min="0"
-                >
+                <LazyGeneralOsToTimeChart :data="results.data.minOs" :title="'Min os'" :x-label="'min os'" :max="50"
+                  :min="0">
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
               <TabsContent value="max-os">
-                <LazyGeneralOsToTimeChart
-                  :data="results.data.maxOs"
-                  :title="'Max os'"
-                  :x-label="'max os'"
-                  :max="50"
-                  :min="0"
-                >
+                <LazyGeneralOsToTimeChart :data="results.data.maxOs" :title="'Max os'" :x-label="'max os'" :max="50"
+                  :min="0">
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
             </Tabs>
           </div>
-          <LazyGeneralWinrateChart
-            :data="results.data.factionWinrate"
-            class="rounded-xl bg-surface p-2 shadow-lg"
-            title="Faction win factor"
-          >
+          <LazyGeneralWinrateChart :data="results.data.factionWinrate" class="rounded-xl bg-surface p-2 shadow-lg"
+            title="Faction win factor">
           </LazyGeneralWinrateChart>
 
-          <LazyGeneralTeamWinrateChart
-            v-if="results.data.teamWinrate !== undefined"
-            :data="results.data.teamWinrate"
-            class="rounded-xl bg-surface shadow-lg"
-          >
+          <LazyGeneralTeamWinrateChart v-if="results.data.teamWinrate !== undefined" :data="results.data.teamWinrate"
+            class="rounded-xl bg-surface shadow-lg">
           </LazyGeneralTeamWinrateChart>
         </template>
       </div>
