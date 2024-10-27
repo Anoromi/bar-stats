@@ -407,13 +407,13 @@ function updateSelectedColors(event: SelectChangedPayload) {
         class="mt-8"
       />
       <OsToTimeChart
-        v-if="clusterData.osToTime.length > 0"
+        v-if="clusterData.osToTime.times.length > 0"
         :data="clusterData.osToTime"
         title="Combined position os to time"
         x-label="combined os"
       />
       <OsToTimeChart
-        v-if="clusterData.osAvgOsDiffToTime.length > 0"
+        v-if="clusterData.osAvgOsDiffToTime.times.length > 0"
         :data="clusterData.osAvgOsDiffToTime"
         title="Combine os difference"
         x-label="combined os"
