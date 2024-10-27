@@ -35,12 +35,12 @@ export default defineNuxtConfig({
     },
     vercel: {
       config: {
-        crons: [
-          {
-            path: "/api/syncDatabase?highLength=false",
-            schedule: "0 * * * *",
-          },
-        ],
+        //crons: [
+        //  {
+        //    path: "/api/syncDatabase?highLength=false",
+        //    schedule: "0 * * * *",
+        //  },
+        //],
       },
     },
     serverAssets: [
