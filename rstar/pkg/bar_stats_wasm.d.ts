@@ -7,6 +7,19 @@
  * @returns {DepthClusterizationResults}
  */
 export function depth_clusterize(data: (BarPartialPlayerData)[], eps: number, min_pts: number): DepthClusterizationResults;
+/**
+ * @param {Float64Array} values
+ * @param {number} length
+ * @param {MovingAverageOptions} method
+ * @returns {Float64Array}
+ */
+export function moving_average(values: Float64Array, length: number, method: MovingAverageOptions): Float64Array;
+export enum MovingAverageOptions {
+  EMA = 0,
+  SMA = 1,
+  SMM = 2,
+  WSMA = 3,
+}
 export class BarPartialPlayerData {
   free(): void;
   /**
