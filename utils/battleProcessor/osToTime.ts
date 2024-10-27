@@ -114,8 +114,8 @@ export async function smoothValues(
   const { moving_average } = await import("~/rstar/pkg/bar_stats_wasm");
   const smoothedTimeArr = moving_average(timeArr, meanSize, smoothingOption);
   //const smoothedTimeArr = movingMedian(timeArr, meanSize);
-  console.log("smoothed", smoothedTimeArr);
-  console.log("osArr", valueArr);
+  //console.log("smoothed", smoothedTimeArr);
+  //console.log("osArr", valueArr);
 
   const results: [number, number][] = [];
 

@@ -74,7 +74,6 @@ const onSubmit = form.handleSubmit((values) => {
   } as const;
   request.value = currentRequest;
   worker.value!.request(currentRequest).then((v) => {
-    console.log("worker result is ", v);
     if (request.value === currentRequest) results.value = v;
   });
 });

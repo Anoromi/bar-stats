@@ -32,11 +32,6 @@ async function processBattleRequest(params: GetBattlesClientParams): Promise<{
   maxTeamCount: number;
 }> {
   const battles = await getBattles(params);
-  console.log("received", battles);
-  console.log(
-    "received",
-    battles.map((v) => v.key.id),
-  );
 
   if (battles.length === 0) {
     return {

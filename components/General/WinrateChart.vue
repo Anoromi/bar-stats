@@ -6,10 +6,8 @@ const { data, title } = defineProps<{
 
 const factionWinrate = computed(() => {
   const winrate = data;
-  console.log("winrate 1", winrate);
   return Object.keys(winrate)
     .map((faction) => {
-      console.log("faction", faction);
       return { name: faction, ratio: winrate[faction] };
     })
     .filter((v) => v.name !== "Random");
@@ -29,7 +27,6 @@ function getFactionName(name: string) {
 }
 
 const option = computed<ECOption>(() => {
-  console.log("winrates", factionWinrate.value);
   const colors = factionWinrate.value.map((v) => {
     switch (v.name) {
       case "Armada":

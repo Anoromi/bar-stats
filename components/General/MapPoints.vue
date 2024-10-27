@@ -51,7 +51,6 @@ const labels = computed(() => {
   const filteredLabels = [...map.entries()].filter(
     (v) => v[1].length > maxExpected / 10,
   );
-  console.log("filtered", filteredLabels);
   filteredLabels.sort((a, b) => b[1].length - a[1].length);
   return filteredLabels;
 });
@@ -108,7 +107,6 @@ const labelColors = computed(() => {
     mapHalfSize.value.width / 2,
     mapHalfSize.value.height / 2,
   ] as const satisfies unknown[];
-  console.log("mapcenter", center);
 
   series.sort(([_, a], [_2, b]) => {
     const aDist = sqEuclideanDistance(a.position, center, (v) => v);

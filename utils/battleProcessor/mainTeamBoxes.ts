@@ -36,6 +36,5 @@ export function normalizeBattleTeamBoxes(battles: BattleWithPlayers[]) {
     }
   }
 
-  console.log('boxes', b)
   return battles.filter(v => match(v.teams, biggestCombination))
 }
