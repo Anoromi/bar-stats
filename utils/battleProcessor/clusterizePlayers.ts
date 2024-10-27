@@ -53,7 +53,7 @@ export async function clusterizePlayers(
       y: player.player.startPosZ!,
       battleIndex: player.battleIndex,
     }),
-    600,
+    1000,
     20,
   );
   console.timeEnd("clusterize");
