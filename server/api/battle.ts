@@ -16,7 +16,7 @@ const querySchema = z.object({
     .transform((v) => new Date(v))
     .nullish()
     .default(null),
-  osSelection: z.enum(["<=20", ">=20", ">=25"]).nullish().default(null),
+  osSelection: z.enum(["<=20", ">=20", ">=15", ">=25"]).nullish().default(null),
   waterIsLava: booleanQueryParam(),
   rankedGame: booleanQueryParam(),
 });
@@ -40,7 +40,10 @@ export default defineCachedEventHandler<
       if (users?.length === 0) users = null;
       let minOs: number | null = null;
       let maxOs: number | null = null;
-      if (requestParams.osSelection === "<=20") {
+      if (requestParams.osSelection === ">=15") {
+        minOs = 10
+      }
+      else if (requestParams.osSelection === "<=20") {
         maxOs = 20;
       } else if (requestParams.osSelection === ">=20") {
         minOs = 20;
