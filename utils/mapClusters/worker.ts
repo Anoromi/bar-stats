@@ -3,7 +3,7 @@ import { WorkerServer } from "../worker/core/server";
 import { count } from "../other/count";
 import { assert } from "../other/assert";
 import type { LabeledPlayer } from "../battleProcessor/labeledPlayers";
-import { calculateParamToTime } from "../battleProcessor/osToTime";
+import { calculateParamToTime, type ValueToTimeMapping } from "../battleProcessor/osToTime";
 import { sumArray } from "../other/sumArray";
 
 let battles: BattleWithPlayers[] | null = null;
@@ -20,15 +20,15 @@ function getPlayer(index: number) {
   return getPlayerBattle(index).values[playerIndexes![index]];
 }
 
-function processRequest(searchedLabels: number[]): {
+async function processRequest(searchedLabels: number[]): Promise<{
   pointCount: number;
   //positionImportance: number;
   positionPreference: number;
   factionPreference: Record<string, number>;
   factionWinrate: Record<string, number>;
-  osToTime: [number, number][];
-  osAvgOsDiffToTime: [number, number][];
-} {
+  osToTime: ValueToTimeMapping;
+  osAvgOsDiffToTime: ValueToTimeMapping;
+}> {
   assert(battles !== null);
   assert(playerBattles !== null);
   assert(playerIndexes !== null);
@@ -40,8 +40,8 @@ function processRequest(searchedLabels: number[]): {
       positionPreference: 0,
       factionPreference: {},
       factionWinrate: {},
-      osToTime: [],
-      osAvgOsDiffToTime: [],
+      osToTime: {values: new Float64Array(), times: new Float64Array()},
+      osAvgOsDiffToTime: {values: new Float64Array(), times: new Float64Array()},
     };
 
   return {
@@ -132,7 +132,7 @@ function calculateFactionWinrate(searchedLabels: number[]) {
       results[key] = wins[key].wins / wins[key].count;
     }
   }
-  console.log('faction winrate results', wins, results)
+  console.log("faction winrate results", wins, results);
   return results;
 }
 
@@ -140,7 +140,6 @@ function calculateOsToTime(searchedLabels: number[]) {
   const filteredBattles = battlesWithLabelIndexes(searchedLabels);
   return calculateParamToTime(
     filteredBattles,
-    filteredBattles.length / 20,
     ({ playerIndexes }) => {
       return sumArray(playerIndexes.map((v) => getPlayer(v).skill ?? 0));
     },
@@ -154,7 +153,6 @@ function calculateOsAvgDifferenceToTime(searchedLabels: number[]) {
   const filteredBattles = battlesWithLabelIndexes(searchedLabels);
   return calculateParamToTime(
     filteredBattles,
-    filteredBattles.length / 20,
     ({ battle, playerIndexes }) => {
       return sumArray(
         playerIndexes.map(
@@ -221,8 +219,8 @@ export type ClusterPostprocessingResult =
         positionPreference: number;
         factionPreference: Record<string, number>;
         factionWinrate: Record<string, number>;
-        osToTime: [number, number][];
-        osAvgOsDiffToTime: [number, number][];
+        osToTime: ValueToTimeMapping;
+        osAvgOsDiffToTime: ValueToTimeMapping;
         //preferenceToTime: [number, number][];
       };
     };
@@ -244,7 +242,7 @@ onmessage = new WorkerServer<
     case "evaluate":
       return {
         type: "evaluate",
-        data: processRequest(data.params.labels),
+        data: await processRequest(data.params.labels),
       };
   }
 }).listener;

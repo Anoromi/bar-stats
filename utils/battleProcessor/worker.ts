@@ -1,15 +1,14 @@
-import type { GetBattleQuery } from "~/server/api/battle";
 import { WorkerServer } from "../worker/core/server";
 import {
   calculateAvgOsToTime,
   calculateMaxOsToTime,
   calculateMinOsToTime,
   calculateOsDiffToTime,
+  type ValueToTimeMapping,
 } from "./osToTime";
 import type { MapDto } from "~/server/utils/dto/dto";
 import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 import { normalizeBattleTeamBoxes } from "./mainTeamBoxes";
-import { generateParams } from "./generateParams";
 import { getMap } from "./map";
 import type { MapEntity } from "~/server/utils/database/schema";
 import { calculateWinrateOfFactions } from "./factionWinrate";
@@ -26,15 +25,13 @@ async function processBattleRequest(params: GetBattlesClientParams): Promise<{
   clusteredData?: LabeledPlayer[];
   map?: MapEntity;
   clusterCount?: number;
-  osToTime: [os: number, time: number][];
-  osToTime2: [os: number, time: number][];
-  osToTime3: [os: number, time: number][];
-  minOs: [os: number, time: number][];
-  maxOs: [os: number, time: number][];
-  osDiffToTime: [os: number, time: number][];
+  osToTime: ValueToTimeMapping;
+  minOs: ValueToTimeMapping;
+  maxOs: ValueToTimeMapping;
+  osDiffToTime: ValueToTimeMapping;
   maxTeamCount: number;
 }> {
-  const battles = await getBattles(params)
+  const battles = await getBattles(params);
   console.log("received", battles);
   console.log(
     "received",
@@ -43,15 +40,13 @@ async function processBattleRequest(params: GetBattlesClientParams): Promise<{
 
   if (battles.length === 0) {
     return {
-      osToTime: [],
-      osToTime2: [],
-      osToTime3: [],
-      minOs: [],
-      maxOs: [],
+      osToTime: { times: new Float64Array(), values: new Float64Array() },
+      minOs: { times: new Float64Array(), values: new Float64Array() },
+      maxOs: { times: new Float64Array(), values: new Float64Array() },
+      osDiffToTime: { times: new Float64Array(), values: new Float64Array() },
       battles: [],
       map: undefined,
       maxTeamCount: 0,
-      osDiffToTime: [],
       factionWinrate: {},
     };
   }
@@ -63,7 +58,7 @@ async function processBattleRequest(params: GetBattlesClientParams): Promise<{
 
   return {
     battles: filteredBattles,
-    ...genericProcess(filteredBattles),
+    ...(await genericProcess(filteredBattles)),
     ...(params.map !== null ? await processSpecificMap(filteredBattles) : {}),
     maxTeamCount: calculateTeamCount(battles),
   };
@@ -80,23 +75,19 @@ function calculateTeamCount(battles: BattleWithPlayers[]): number {
   return foundMax;
 }
 
-function genericProcess(battles: BattleWithPlayers[]): {
+async function genericProcess(battles: BattleWithPlayers[]): Promise<{
   factionWinrate: Record<string, number>;
-  osToTime: [os: number, time: number][];
-  osToTime2: [os: number, time: number][];
-  osToTime3: [os: number, time: number][];
-  osDiffToTime: [os: number, time: number][];
-  minOs: [os: number, time: number][];
-  maxOs: [os: number, time: number][];
-} {
+  osToTime: ValueToTimeMapping;
+  osDiffToTime: ValueToTimeMapping;
+  minOs: ValueToTimeMapping;
+  maxOs: ValueToTimeMapping;
+}> {
   return {
     factionWinrate: calculateWinrateOfFactions(battles),
-    osToTime: calculateAvgOsToTime(battles, battles.length / 20),
-    osToTime2: calculateAvgOsToTime(battles, battles.length / 10),
-    osToTime3: calculateAvgOsToTime(battles, battles.length / 5),
-    osDiffToTime: calculateOsDiffToTime(battles, battles.length / 10),
-    minOs: calculateMinOsToTime(battles, battles.length / 5),
-    maxOs: calculateMaxOsToTime(battles, battles.length / 5),
+    osToTime: calculateAvgOsToTime(battles),
+    osDiffToTime: calculateOsDiffToTime(battles),
+    minOs: calculateMinOsToTime(battles),
+    maxOs: calculateMaxOsToTime(battles),
   };
 }
 
@@ -133,12 +124,10 @@ export type BattlesProcessorResponse = {
     labeledPlayers?: LabeledPlayer[];
     map?: MapEntity;
     clusterCount?: number;
-    osToTime: [os: number, time: number][];
-    osToTime2: [os: number, time: number][];
-    osToTime3: [os: number, time: number][];
-    minOs: [os: number, time: number][];
-    maxOs: [os: number, time: number][];
-    osDiffToTime: [os: number, time: number][];
+    osToTime: ValueToTimeMapping;
+    minOs: ValueToTimeMapping;
+    maxOs: ValueToTimeMapping;
+    osDiffToTime: ValueToTimeMapping;
     maxTeamCount: number;
   };
 };
