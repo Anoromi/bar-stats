@@ -6,11 +6,17 @@ import type {
   BattlesProcessorRequest,
   BattlesProcessorResponse,
 } from "~/utils/battleProcessor/worker";
-import { useClientWorker } from "~/utils/worker/useClientWorker";
 import { toast } from "~/components/ui/toast";
 
+const route = useRoute();
+
 const allowedDataLimits = ["500", "1000", "5000"] as const satisfies unknown[];
-const allowedOsOptions = ["<=20", ">=20", ">=25", ">=15"] as const satisfies unknown[];
+const allowedOsOptions = [
+  "<=20",
+  ">=20",
+  ">=25",
+  ">=15",
+] as const satisfies unknown[];
 const binaryOptions = ["Yes", "No"] as const satisfies unknown[];
 
 const formSchema = toTypedSchema(
@@ -23,7 +29,7 @@ const formSchema = toTypedSchema(
       })
       .array()
       .default([]),
-    map: z.string().optional(),
+    map: z.string().optional().default(route.query.map as string),
     limit: z.enum(allowedDataLimits).default("500"),
     startDate: z.string().date().optional(),
     battleType: z.string().default("8v8"),
@@ -37,15 +43,7 @@ const form = useForm({
   validationSchema: formSchema,
 });
 
-const { worker } = useClientWorker<
-  BattlesProcessorRequest,
-  BattlesProcessorResponse
->(
-  () =>
-    new Worker(new URL("~/utils/battleProcessor/worker", import.meta.url), {
-      type: "module",
-    }),
-);
+const { worker } = useWorkerServers().battleProcessorWorker;
 
 const request = shallowRef<unknown>(null);
 const results = ref<BattlesProcessorResponse>();
@@ -73,6 +71,7 @@ const onSubmit = form.handleSubmit((values) => {
     },
   } as const;
   request.value = currentRequest;
+  console.log(worker);
   worker.value!.request(currentRequest).then((v) => {
     if (request.value === currentRequest) results.value = v;
   });
@@ -83,12 +82,19 @@ function cleanForm() {
 }
 </script>
 
+<script lang="ts">
+export type GeneralPageQuery = {
+  map: string;
+};
+</script>
+
 <template>
   <article class="flex flex-1 flex-col items-center p-4">
     <div class="flex w-full flex-1 flex-col xl:flex-row xl:justify-center">
       <form
         class="mb-4 mt-4 flex h-max flex-col gap-y-4 rounded-2xl p-4 sm:mt-10 md:max-w-96 xl:w-96 xl:bg-surface xl:shadow-md"
-        @submit="onSubmit">
+        @submit="onSubmit"
+      >
         <legend class="mb-2 text-lg font-bold">Filter</legend>
         <GeneralMapSelector name="map"></GeneralMapSelector>
         <!-- <GeneralUserSelector name="users"></GeneralUserSelector> -->
@@ -102,25 +108,44 @@ function cleanForm() {
             <FormMessage />
           </FormItem>
         </FormField>
-        <GeneralRadioTabsInput name="limit" :values="allowedDataLimits.map((v) => ({ label: v, value: v }))"
-          label="Player limit">
+        <GeneralRadioTabsInput
+          name="limit"
+          :values="allowedDataLimits.map((v) => ({ label: v, value: v }))"
+          label="Player limit"
+        >
           <template #description>
             All data is sent to you. Loading might be slow
           </template>
         </GeneralRadioTabsInput>
-        <GeneralRadioTabsInput name="osSelection" :values="[
-          { label: 'Any', value: undefined },
-          ...allowedOsOptions.map((v) => ({ label: v, value: v }) as const),
-        ]" label="Average os"></GeneralRadioTabsInput>
-        <GeneralRadioTabsInput name="isRanked" :values="binaryOptions.map((v) => ({ label: v, value: v }))"
-          label="Ranked game">
+        <GeneralRadioTabsInput
+          name="osSelection"
+          :values="[
+            { label: 'Any', value: undefined },
+            ...allowedOsOptions.map((v) => ({ label: v, value: v }) as const),
+          ]"
+          label="Average os"
+        ></GeneralRadioTabsInput>
+        <GeneralRadioTabsInput
+          name="isRanked"
+          :values="binaryOptions.map((v) => ({ label: v, value: v }))"
+          label="Ranked game"
+        >
         </GeneralRadioTabsInput>
-        <GeneralRadioTabsInput name="waterIsLava" :values="binaryOptions.map((v) => ({ label: v, value: v }))"
-          label="Water is lava"></GeneralRadioTabsInput>
+        <GeneralRadioTabsInput
+          name="waterIsLava"
+          :values="binaryOptions.map((v) => ({ label: v, value: v }))"
+          label="Water is lava"
+        ></GeneralRadioTabsInput>
         <!--         <GeneralDateInput name="startDate"></GeneralDateInput> -->
 
         <div class="flex gap-x-2">
-          <Button type="button" variant="outline" class="flex-1" @click="cleanForm">Clear</Button>
+          <Button
+            type="button"
+            variant="outline"
+            class="flex-1"
+            @click="cleanForm"
+            >Clear</Button
+          >
           <Button type="submit" variant="default" class="flex-1">Search</Button>
         </div>
       </form>
@@ -131,12 +156,18 @@ function cleanForm() {
           <b class="block text-xl">
             Found {{ results.data.battles.length }} battles
           </b>
-          <LazyGeneralMapPoints v-if="results.data.labeledPlayers !== undefined" :battles="results.data.battles"
-            :player-clusters="results.data.labeledPlayers!" :map="{
+          <LazyGeneralMapPoints
+            v-if="results.data.labeledPlayers !== undefined"
+            :battles="results.data.battles"
+            :player-clusters="results.data.labeledPlayers!"
+            :map="{
               name: results.data.map!.fileName!,
               height: results.data.map!.height!,
               width: results.data.map!.width!,
-            }" :max-teams="results.data.maxTeamCount" :cluster-count="results.data.clusterCount!">
+            }"
+            :max-teams="results.data.maxTeamCount"
+            :cluster-count="results.data.clusterCount!"
+          >
           </LazyGeneralMapPoints>
           <div class="rounded-xl bg-surface px-2 pt-4 shadow-lg">
             <Tabs default-value="average-os" class="min-h-[600px]">
@@ -155,33 +186,57 @@ function cleanForm() {
                 </TabsTrigger>
               </TabsList>
               <TabsContent value="osdiff">
-                <LazyGeneralOsToTimeChart :data="results.data.osDiffToTime" :title="'Os diff'"
-                  :x-label="'os difference'">
+                <LazyGeneralOsToTimeChart
+                  :data="results.data.osDiffToTime"
+                  :title="'Os diff'"
+                  :x-label="'os difference'"
+                >
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
               <TabsContent value="average-os">
-                <LazyGeneralOsToTimeChart :data="results.data.osToTime" :title="'Average os'" :x-label="'average os'"
-                  :max="50" :min="0">
+                <LazyGeneralOsToTimeChart
+                  :data="results.data.osToTime"
+                  :title="'Average os'"
+                  :x-label="'average os'"
+                  :max="50"
+                  :min="0"
+                >
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
               <TabsContent value="min-os">
-                <LazyGeneralOsToTimeChart :data="results.data.minOs" :title="'Min os'" :x-label="'min os'" :max="50"
-                  :min="0">
+                <LazyGeneralOsToTimeChart
+                  :data="results.data.minOs"
+                  :title="'Min os'"
+                  :x-label="'min os'"
+                  :max="50"
+                  :min="0"
+                >
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
               <TabsContent value="max-os">
-                <LazyGeneralOsToTimeChart :data="results.data.maxOs" :title="'Max os'" :x-label="'max os'" :max="50"
-                  :min="0">
+                <LazyGeneralOsToTimeChart
+                  :data="results.data.maxOs"
+                  :title="'Max os'"
+                  :x-label="'max os'"
+                  :max="50"
+                  :min="0"
+                >
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
             </Tabs>
           </div>
-          <LazyGeneralWinrateChart :data="results.data.factionWinrate" class="rounded-xl bg-surface p-2 shadow-lg"
-            title="Faction win factor">
+          <LazyGeneralWinrateChart
+            :data="results.data.factionWinrate"
+            class="rounded-xl bg-surface p-2 shadow-lg"
+            title="Faction win factor"
+          >
           </LazyGeneralWinrateChart>
 
-          <LazyGeneralTeamWinrateChart v-if="results.data.teamWinrate !== undefined" :data="results.data.teamWinrate"
-            class="rounded-xl bg-surface shadow-lg">
+          <LazyGeneralTeamWinrateChart
+            v-if="results.data.teamWinrate !== undefined"
+            :data="results.data.teamWinrate"
+            class="rounded-xl bg-surface shadow-lg"
+          >
           </LazyGeneralTeamWinrateChart>
         </template>
       </div>
