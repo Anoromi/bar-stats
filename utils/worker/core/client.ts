@@ -22,7 +22,6 @@ export class WorkerClient<Request, Response> {
   }
 
   request(data: Request): CancelablePromise<Response> {
-    console.log('making request', data)
     const nextId = this.nextId();
     this.worker.postMessage({
       id: nextId,

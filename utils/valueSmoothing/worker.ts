@@ -25,7 +25,6 @@ export type ValueSmoothingResponse =
 
 const worker = new WorkerServer<ValueSmoothingRequest, ValueSmoothingResponse>(
   async (_context, { type, data }) => {
-    console.log("smoothing worker received", data);
     switch (type) {
       case "process": {
         return {
