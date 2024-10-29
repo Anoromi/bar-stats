@@ -168,7 +168,7 @@ export function moving_average(values, length, method) {
     }
 }
 
-export const MovingAverageOptions = Object.freeze({ EMA:0,"0":"EMA",SMA:1,"1":"SMA",SMM:2,"2":"SMM",WSMA:3,"3":"WSMA", });
+export const MovingAverageOptions = Object.freeze({ EMA:0,"0":"EMA",SMA:1,"1":"SMA",SMM:2,"2":"SMM",WSMA:3,"3":"WSMA",SSMA:4,"4":"SSMA", });
 
 const BarPartialPlayerDataFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }

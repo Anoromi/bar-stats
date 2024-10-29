@@ -19,6 +19,7 @@ export enum MovingAverageOptions {
   SMA = 1,
   SMM = 2,
   WSMA = 3,
+  SSMA = 4,
 }
 export class BarPartialPlayerData {
   free(): void;
