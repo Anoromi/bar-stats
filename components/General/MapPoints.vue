@@ -7,19 +7,14 @@ import {
   extractPlayer,
   type LabeledPlayer,
 } from "~/utils/battleProcessor/labeledPlayers";
-import type {
-  ClusterPostprocessingRequest,
-  ClusterPostprocessingResult,
-} from "~/utils/mapClusters/worker";
+
 import { avgPoint } from "~/utils/other/avgPoint";
-import MapClusterWorker from "~/utils/mapClusters/worker?worker";
 
 import {
   getAnyUniformColor,
   getUniformColorBlue,
   getUniformColorRed,
 } from "~/utils/other/uniformColor";
-import { useClientWorker } from "~/utils/worker/useClientWorker";
 import { assert } from "~/utils/other/assert";
 import type { VChart } from "#build/components";
 import { sqEuclideanDistance } from "~/utils/other/euclideanDistance";
@@ -287,10 +282,7 @@ function deselectColor(index: number) {
   });
 }
 
-const { worker } = useClientWorker<
-  ClusterPostprocessingRequest,
-  ClusterPostprocessingResult
->(() => new MapClusterWorker());
+const { worker } = useWorkerServers().mapProcessingWorker;
 
 const initialized = ref(false);
 watch(
@@ -313,7 +305,10 @@ watch(
   },
 );
 
+const id = useId();
+
 const { data: clusterData } = useAsyncData(
+  id,
   async () => {
     if (!initialized.value) {
       return null;
@@ -375,13 +370,14 @@ function updateSelectedColors(event: SelectChangedPayload) {
             ></div>
             {{ labelColors[color.seriesIndex][1] }}
           </Button>
-          <div v-if="selectedColors.length === 0">
-            <b class="text-lg">Selected datapoints</b>
+          <div v-if="selectedColors.length === 0" class="text-lg">
+            <b >No positions selected </b> <br>
+            <b >Hint: </b> To select a datapoint press on one of the positions
           </div>
         </div>
         <div
           v-if="clusterData !== null && selectedColors.length > 0"
-          class="mt-10 text-lg"
+          class="mt-4 text-lg"
         >
           <p><b>Point count:</b> {{ clusterData.pointCount }}</p>
           <p>
@@ -390,32 +386,56 @@ function updateSelectedColors(event: SelectChangedPayload) {
         </div>
       </div>
     </div>
-    <!-- <GeneralWinrateChart :data="clusterData.factionWinrate" /> -->
     <template v-if="clusterData !== null">
-      <GeneralWinrateChart
-        v-if="Object.keys(clusterData.factionPreference).length > 0"
-        title="Faction preference"
-        :data="clusterData.factionPreference"
-        class="mt-8"
-      />
-      <GeneralWinrateChart
-        v-if="Object.keys(clusterData.factionWinrate).length > 0"
-        title="Faction winrate"
-        :data="clusterData.factionWinrate"
-        class="mt-8"
-      />
-      <OsToTimeChart
-        v-if="clusterData.osToTime.times.length > 0"
-        :data="clusterData.osToTime"
-        title="Combined position os to time"
-        x-label="combined os"
-      />
-      <OsToTimeChart
-        v-if="clusterData.osAvgOsDiffToTime.times.length > 0"
-        :data="clusterData.osAvgOsDiffToTime"
-        title="Combine os difference"
-        x-label="combined os"
-      />
+      <Tabs default-value="winrate" class="mt-4">
+        <TabsList>
+          <TabsTrigger value="winrate"> Winrates </TabsTrigger>
+          <TabsTrigger value="combined os"> Combined os </TabsTrigger>
+          <TabsTrigger value="team os"> Team os </TabsTrigger>
+        </TabsList>
+        <TabsContent value="winrate" class="w-full">
+          <GeneralWinrateChart
+            v-if="Object.keys(clusterData.factionPreference).length > 0"
+            title="Faction preference"
+            :data="clusterData.factionPreference"
+            class="mt-8"
+          />
+          <GeneralWinrateChart
+            v-if="Object.keys(clusterData.factionWinrate).length > 0"
+            title="Faction winrate"
+            :data="clusterData.factionWinrate"
+            class="mt-8"
+          />
+        </TabsContent>
+        <TabsContent value="combined os">
+          <OsToTimeChart
+            v-if="clusterData.osToTime.times.length > 0"
+            :data="clusterData.osToTime"
+            title="Combined position os to time"
+            x-label="combined os"
+          />
+          <OsToTimeChart
+            v-if="clusterData.osAvgOsDiffToTime.times.length > 0"
+            :data="clusterData.osAvgOsDiffToTime"
+            title="Combine os difference"
+            x-label="combined os"
+          />
+        </TabsContent>
+        <TabsContent value="team os">
+          <OsToTimeChart
+            v-if="clusterData.osTeamToTime.times.length > 0"
+            :data="clusterData.osTeamToTime"
+            title="Team os diff to time"
+            x-label="team os diff"
+          />
+          <OsToTimeChart
+            v-if="clusterData.osTeamAvgOsDiffToTime.times.length > 0"
+            :data="clusterData.osTeamAvgOsDiffToTime"
+            title="Team os difference"
+            x-label="team os diff"
+          />
+        </TabsContent>
+      </Tabs>
     </template>
   </div>
 </template>
