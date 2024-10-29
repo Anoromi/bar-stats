@@ -7,21 +7,15 @@ import {
 
 export type ValueSmoothingRequest =
   | {
-      type: "init";
-      data: ValueToTimeMapping;
-    }
-  | {
       type: "process";
       data: {
         smoothingLength: number;
         smoothingOption: MovingAverageOptions;
+        mapping: ValueToTimeMapping;
       };
     };
 
 export type ValueSmoothingResponse =
-  | {
-      type: "init";
-    }
   | {
       type: "process";
       data: {
@@ -29,28 +23,17 @@ export type ValueSmoothingResponse =
       };
     };
 
-let osValues: ValueToTimeMapping | null = null;
-
 const worker = new WorkerServer<ValueSmoothingRequest, ValueSmoothingResponse>(
   async (_context, { type, data }) => {
-    console.log('smoothing worker received', data)
+    console.log("smoothing worker received", data);
     switch (type) {
-      case "init": {
-        console.log('received')
-        osValues = data;
-        console.log('returning')
-        return {
-          type: "init",
-        };
-      }
-
       case "process": {
         return {
           type: "process",
           data: {
             smoothedData: await smoothValues(
-              osValues!.values,
-              osValues!.times,
+              data.mapping.values,
+              data.mapping.times,
               data.smoothingLength,
               data.smoothingOption,
             ),
