@@ -1,4 +1,6 @@
 <script setup lang="tsx">
+import { useElementSize } from "@vueuse/core";
+
 const { data, title } = defineProps<{
   data: Record<string, number>;
   title: string;
@@ -26,7 +28,11 @@ function getFactionName(name: string) {
   }
 }
 
+const divElement = useTemplateRef<HTMLElement>("div");
+const size = useElementSize(divElement);
+
 const option = computed<ECOption>(() => {
+  if (size.width.value === 0) return {};
   const colors = factionWinrate.value.map((v) => {
     switch (v.name) {
       case "Armada":
@@ -61,10 +67,11 @@ const option = computed<ECOption>(() => {
     ],
   };
 });
+const { theme } = useEChartThemes();
 </script>
 
 <template>
-  <div>
+  <div ref="div" class="w-full">
     <h4 class="px-4 pt-2 text-xl font-bold">{{ title }}</h4>
     <VChart
       ref="winrate-canvas"
@@ -72,7 +79,8 @@ const option = computed<ECOption>(() => {
       :init-options="{
         height: 400,
       }"
-      class="h-[400px]"
+      :theme="theme"
+      class="h-[400px] w-full"
     ></VChart>
   </div>
 </template>
