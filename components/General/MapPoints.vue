@@ -20,6 +20,7 @@ import type { VChart } from "#build/components";
 import { sqEuclideanDistance } from "~/utils/other/euclideanDistance";
 import type { SelectChangedPayload } from "echarts/core";
 import OsToTimeChart from "./OsToTimeChart.vue";
+import Hint from "../ui/hint/Hint.vue";
 
 const props = defineProps<{
   battles: BattleWithPlayers[];
@@ -75,9 +76,6 @@ const seriesData = computed(() => {
       const player = props.battles[battleIndex].values[playerIndex];
       return [player.startPosX!, player.startPosZ!];
     });
-    //console.log('extracted', label[1].map(v => extractPlayer(props.battles, v).battleTeamNumber))
-    //console.assert(label[1].map(v => extractPlayer(props.battles, v).battleTeamNumber).length === 1, "Oh no")
-    //console.log(label[1].filter(v => extractPlayer(props.battles, v).battleTeamNumber).length === 1, "Oh no")
     return {
       position: point,
       labelId: label[0],
@@ -98,7 +96,6 @@ const labelColors = computed(() => {
   const teamIndex = Array(props.maxTeams).fill(0);
   const series = [...seriesData.value.entries()];
   const center = [
-    //0, 0,
     mapHalfSize.value.width / 2,
     mapHalfSize.value.height / 2,
   ] as const satisfies unknown[];
@@ -339,46 +336,30 @@ function updateSelectedColors(event: SelectChangedPayload) {
   <div class="flex flex-col rounded-xl bg-surface p-4 shadow-lg">
     <h4 class="px-4 pt-2 text-xl font-bold">Map data</h4>
     <div class="mt-4 flex flex-col lg:flex-row lg:gap-x-5">
-      <VChart
-        ref="chart-ref"
-        v-memo="[options]"
-        :option="options"
-        :init-options="{
-          height: 500 / mapAspectRatio,
-          width: 500,
-        }"
-        class="w-[500px] shrink-0 rounded-xl bg-surface outline outline-1 outline-foreground/30"
-        @selectchanged="updateSelectedColors"
-      />
+      <VChart ref="chart-ref" v-memo="[options]" :option="options" :init-options="{
+        height: 500 / mapAspectRatio,
+        width: 500,
+      }" class="w-[500px] shrink-0 rounded-xl bg-surface outline outline-1 outline-foreground/30"
+        @selectchanged="updateSelectedColors" />
       <div class="flex flex-col">
         <div class="flex h-fit flex-wrap items-start justify-start gap-2 pt-6">
-          <Button
-            v-for="(color, i) in selectedColors"
-            :key="labelColors[color.seriesIndex][0]"
-            variant="destructive"
-            :class="
-              cn('mb-auto box-border flex gap-x-1', {
-                'bg-surface outline outline-1 outline-primary':
-                  selectedColors.includes(color),
-              })
-            "
-            @click="() => deselectColor(i)"
-          >
-            <div
-              class="h-4 w-4 rounded-full"
-              :style="{ 'background-color': labelColors[color.seriesIndex][0] }"
-            ></div>
+          <Button v-for="(color, i) in selectedColors" :key="labelColors[color.seriesIndex][0]" variant="destructive"
+            :class="cn('mb-auto box-border flex gap-x-1', {
+              'bg-surface outline outline-1 outline-primary':
+                selectedColors.includes(color),
+            })
+              " @click="() => deselectColor(i)">
+            <div class="h-4 w-4 rounded-full" :style="{ 'background-color': labelColors[color.seriesIndex][0] }"></div>
             {{ labelColors[color.seriesIndex][1] }}
           </Button>
           <div v-if="selectedColors.length === 0" class="text-lg">
-            <b >No positions selected </b> <br>
-            <b >Hint: </b> To select a datapoint press on one of the positions
+            <b>No positions selected </b>
+            <Hint>
+              To select a datapoint press on one of the positions on the map
+            </Hint>
           </div>
         </div>
-        <div
-          v-if="clusterData !== null && selectedColors.length > 0"
-          class="mt-4 text-lg"
-        >
+        <div v-if="clusterData !== null && selectedColors.length > 0" class="mt-4 text-lg">
           <p><b>Point count:</b> {{ clusterData.pointCount }}</p>
           <p>
             <b>Preference:</b> {{ clusterData.positionPreference.toFixed(3) }}
@@ -394,46 +375,73 @@ function updateSelectedColors(event: SelectChangedPayload) {
           <TabsTrigger value="team os"> Team os </TabsTrigger>
         </TabsList>
         <TabsContent value="winrate" class="w-full">
-          <GeneralWinrateChart
-            v-if="Object.keys(clusterData.factionPreference).length > 0"
-            title="Faction preference"
-            :data="clusterData.factionPreference"
-            class="mt-8"
-          />
-          <GeneralWinrateChart
-            v-if="Object.keys(clusterData.factionWinrate).length > 0"
-            title="Faction winrate"
-            :data="clusterData.factionWinrate"
-            class="mt-8"
-          />
+          <GeneralWinrateChart v-if="Object.keys(clusterData.factionPreference).length > 0" title="Faction preference"
+            :data="clusterData.factionPreference" class="mt-8" />
+          <GeneralWinrateChart v-if="Object.keys(clusterData.factionWinrate).length > 0" title="Faction winrate"
+            :data="clusterData.factionWinrate" class="mt-8" />
         </TabsContent>
         <TabsContent value="combined os">
-          <OsToTimeChart
-            v-if="clusterData.osToTime.times.length > 0"
-            :data="clusterData.osToTime"
-            title="Combined position os to time"
-            x-label="combined os"
-          />
-          <OsToTimeChart
-            v-if="clusterData.osAvgOsDiffToTime.times.length > 0"
-            :data="clusterData.osAvgOsDiffToTime"
-            title="Combine os difference"
-            x-label="combined os"
-          />
+          <OsToTimeChart v-if="clusterData.osToTime.times.length > 0" :data="clusterData.osToTime"
+            title="Combined position os to time" x-label="combined os">
+            <template #hint>
+              <Hint>
+                This chart reflects on how summed up os of selected players
+                corresponds to battle time. <br />
+                <b>For example,</b> for 2 players in a battle we will get
+                formula
+                <blockquote class="text-foreground-variant">
+                  player1_os + player2_os
+                </blockquote>
+              </Hint>
+            </template>
+          </OsToTimeChart>
+          <OsToTimeChart v-if="clusterData.osAvgOsDiffToTime.times.length > 0" :data="clusterData.osAvgOsDiffToTime"
+            title="Combine os difference" x-label="combined os">
+            <template #hint>
+              <Hint class="sm:w-96">
+                This chart is similar to combined position os to time. <br />
+                However, instead of taking os, this chart uses difference
+                between player os and average os in a battle. <br />
+                <b>For example,</b> for 2 players in a battle we will get
+                formula
+                <blockquote class="text-foreground-variant">
+                  (player1_os - average_os) + (player2_os - average_os)
+                </blockquote>
+              </Hint>
+            </template>
+          </OsToTimeChart>
         </TabsContent>
         <TabsContent value="team os">
-          <OsToTimeChart
-            v-if="clusterData.osTeamToTime.times.length > 0"
-            :data="clusterData.osTeamToTime"
-            title="Team os diff to time"
-            x-label="team os diff"
-          />
-          <OsToTimeChart
-            v-if="clusterData.osTeamAvgOsDiffToTime.times.length > 0"
-            :data="clusterData.osTeamAvgOsDiffToTime"
-            title="Team os difference"
-            x-label="team os diff"
-          />
+          <OsToTimeChart v-if="clusterData.osTeamToTime.times.length > 0" :data="clusterData.osTeamToTime"
+            title="Team os diff to time" x-label="team os diff">
+            <template #hint>
+              <Hint class="sm:w-96">
+                This chart reflects on how summed up os of players in teams
+                corresponds to battle time. <br />
+                <b>For example,</b> for 4 players from team 0 and team 1 in a
+                battle we will get formula
+                <blockquote class="text-foreground-variant">
+                  (player1_os + player2_os) - (player3_os + player4_os)
+                </blockquote>
+              </Hint>
+            </template>
+          </OsToTimeChart>
+          <OsToTimeChart v-if="clusterData.osTeamAvgOsDiffToTime.times.length > 0"
+            :data="clusterData.osTeamAvgOsDiffToTime" title="Team os difference" x-label="team os diff">
+            <template #hint>
+              <Hint class="sm:w-96">
+                This chart is similar to team position os to time. <br />
+                However, instead of taking os, this chart uses difference
+                between player os and average os in a battle. <br />
+                <b>For example,</b> for 4 players from 2 teams in a
+                battle we will get formula
+                <blockquote class="text-foreground-variant">
+                  ((player1_os - average_os) + (player2_os - average_os)) -
+                  ((player3_os - average_os) + (player4_os - average_os))
+                </blockquote>
+              </Hint>
+            </template>
+          </OsToTimeChart>
         </TabsContent>
       </Tabs>
     </template>

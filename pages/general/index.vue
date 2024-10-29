@@ -7,6 +7,7 @@ import type {
   BattlesProcessorResponse,
 } from "~/utils/battleProcessor/worker";
 import { toast } from "~/components/ui/toast";
+import Hint from "~/components/ui/hint/Hint.vue";
 
 const route = useRoute();
 
@@ -29,7 +30,10 @@ const formSchema = toTypedSchema(
       })
       .array()
       .default([]),
-    map: z.string().optional().default(route.query.map as string),
+    map: z
+      .string()
+      .optional()
+      .default(route.query.map as string),
     limit: z.enum(allowedDataLimits).default("500"),
     startDate: z.string().date().optional(),
     battleType: z.string().default("8v8"),
@@ -191,6 +195,13 @@ export type GeneralPageQuery = {
                   :title="'Os diff'"
                   :x-label="'os difference'"
                 >
+                  <template #hint>
+                    <Hint>
+                      This chart reflects on how os difference in a battle
+                      corresponds to battle time. Specifically, the formula used
+                      is (max_player_os - min_player_os)
+                    </Hint>
+                  </template>
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
               <TabsContent value="average-os">
@@ -201,6 +212,13 @@ export type GeneralPageQuery = {
                   :max="50"
                   :min="0"
                 >
+                  <template #hint>
+                    <Hint>
+                      This chart reflects on how average os in a battle
+                      corresponds to battle time. Specifically, the formula used
+                      is (player1_os + player2_os + player3_os + ...) / player_count
+                    </Hint>
+                  </template>
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
               <TabsContent value="min-os">
@@ -211,6 +229,12 @@ export type GeneralPageQuery = {
                   :max="50"
                   :min="0"
                 >
+                  <template #hint>
+                    <Hint>
+                      This chart reflects on how min os in a battle corresponds
+                      to battle time.
+                    </Hint>
+                  </template>
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
               <TabsContent value="max-os">
@@ -221,6 +245,12 @@ export type GeneralPageQuery = {
                   :max="50"
                   :min="0"
                 >
+                  <template #hint>
+                    <Hint>
+                      This chart reflects on how max os in a battle corresponds
+                      to battle time.
+                    </Hint>
+                  </template>
                 </LazyGeneralOsToTimeChart>
               </TabsContent>
             </Tabs>
