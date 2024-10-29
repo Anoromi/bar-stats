@@ -8,6 +8,8 @@ function invertColor() {
     color.value = "dark";
   } else color.value = "light";
 }
+
+useEChartThemes()
 </script>
 
 <template>
@@ -16,16 +18,16 @@ function invertColor() {
       <NuxtLink class="text-2xl text-primary" to="/">
         <b>BAR</b> Charted
       </NuxtLink>
-      <nav class="ml-12">
-        <NuxtLink class="text-surface-foreground" to="/general">
-          overview
-        </NuxtLink>
-        <Button variant="link" @click="invertColor">
+      <nav class="ml-auto mr-10 flex gap-x-4 items-center">
+        <Button variant="ghost" size="icon" @click="invertColor">
           <ClientOnly>
             <MoonIcon v-if="color === 'dark'"></MoonIcon>
             <SunIcon v-else></SunIcon>
           </ClientOnly>
         </Button>
+        <NuxtLink class="text-primary font-bold text-lg" to="/general">
+          Overview
+        </NuxtLink>
       </nav>
     </header>
     <slot></slot>
