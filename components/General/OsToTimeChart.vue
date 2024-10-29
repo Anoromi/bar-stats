@@ -1,4 +1,5 @@
 <script setup lang="tsx">
+import type { VChart } from "#build/components";
 import { debouncedRef, useElementSize } from "@vueuse/core";
 import { MovingAverageOptions } from "~/rstar/pkg/bar_stats_wasm";
 import type { ValueToTimeMapping } from "~/utils/battleProcessor/osToTime";
@@ -17,28 +18,6 @@ const size = useElementSize(divElement);
 
 const id = useId();
 const { worker: smoothingWorker } = useWorkerServers().smoothingWorker;
-console.log("osToTime id", id);
-
-//const inited = ref(false);
-//
-//watch(
-//  () => props.data,
-//  async (newData) => {
-//    inited.value = false;
-//    console.log("eheheheh");
-//    await smoothingWorker.value!.request({
-//      type: "process",
-//      data: toRaw(props.data),
-//    });
-//    console.log("eheheheh");
-//    if (newData === props.data) {
-//      inited.value = true;
-//    }
-//  },
-//  {
-//    immediate: true,
-//  },
-//);
 
 const allowedMovingAverages = [
   { key: "sma", value: "Simple moving average" },
@@ -66,19 +45,18 @@ function translateAverageOption(
 }
 
 const roughnessFactor = ref([10]);
-const debouncedSmoothnessFactor = debouncedRef(roughnessFactor, 400);
+const debouncedSmoothnessFactor = debouncedRef(roughnessFactor, 50);
 
 const { data: smoothedValues } = useAsyncData(
   id,
   async () => {
-  console.log('dependency changed')
     const result = await smoothingWorker.value!.request({
       type: "process",
       data: {
         smoothingLength:
           props.data.times.length / debouncedSmoothnessFactor.value[0],
         smoothingOption: translateAverageOption(movingAverageType.value),
-        mapping: toRaw(props.data)
+        mapping: toRaw(props.data),
       },
     });
 
@@ -99,7 +77,8 @@ const { data: smoothedValues } = useAsyncData(
 
 const option = computed<ECOption | null>(() => {
   if (size.width.value === 0) return null;
-  const values = smoothedValues.value ?? [];
+  const values: [number, number][] = [];
+
 
   return {
     grid: {
@@ -130,13 +109,24 @@ const option = computed<ECOption | null>(() => {
   };
 });
 
-const {theme} = useEChartThemes() 
+const chart = useTemplateRef<InstanceType<typeof VChart>>("chart");
+
+watch(smoothedValues, (newData) => {
+  chart.value!.chart!.setOption({
+    series: {
+      data: newData,
+    },
+  });
+});
+
+const { theme } = useEChartThemes();
 </script>
 
 <template>
-  <div ref="div" class="pb-8 w-full">
+  <div ref="div" class="w-full pb-8">
     <h4 class="h-9 px-4 pt-2 text-xl font-bold">
       {{ props.title }}
+      <slot name="hint" />
     </h4>
     <div class="mt-4 flex flex-col gap-2 px-4">
       <div class="flex flex-col">
@@ -168,6 +158,7 @@ const {theme} = useEChartThemes()
     </div>
     <VChart
       v-if="option !== null"
+      ref="chart"
       :option="option"
       :theme="theme"
       :init-options="{ height: 500 }"
