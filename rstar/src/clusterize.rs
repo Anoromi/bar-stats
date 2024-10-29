@@ -185,6 +185,7 @@ mod test {
         let data = vec![
         ];
 
+        
         let result = depth_clusterize(data, 5.0, 2);
     }
 }
