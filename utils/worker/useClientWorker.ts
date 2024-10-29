@@ -1,23 +1,24 @@
-import { isClient, tryOnScopeDispose } from "@vueuse/core";
+import { isClient } from "@vueuse/core";
 import { WorkerClient } from "./core/client";
 
 export function useClientWorker<Request, Response>(
-  workerGenerator: () => Worker
+  key: string,
+  workerGenerator: () => Worker,
 ) {
-  const worker = shallowRef<Worker>();
+  const worker = useState<WorkerClient<Request, Response> | null>(
+    key,
+    () => null,
+  );
 
   if (isClient) {
-  // url: URL,
-  // workerOptions?: WorkerOptions,
-    worker.value = workerGenerator();
+    //console.log('rerunning')
+    if (worker.value === null) {
+      worker.value = new WorkerClient<Request, Response>(workerGenerator());
+    }
   }
   const workerClient = computed(() => {
-    if (worker.value === undefined) return undefined;
-    return new WorkerClient<Request, Response>(worker.value);
-  });
-
-  tryOnScopeDispose(() => {
-    worker.value?.terminate();
+    //if (worker.value === undefined) return undefined;
+    return worker.value;
   });
 
   return {
