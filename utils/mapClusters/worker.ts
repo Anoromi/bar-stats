@@ -3,7 +3,10 @@ import { WorkerServer } from "../worker/core/server";
 import { count } from "../other/count";
 import { assert } from "../other/assert";
 import type { LabeledPlayer } from "../battleProcessor/labeledPlayers";
-import { calculateParamToTime, type ValueToTimeMapping } from "../battleProcessor/osToTime";
+import {
+  calculateParamToTime,
+  type ValueToTimeMapping,
+} from "../battleProcessor/osToTime";
 import { sumArray } from "../other/sumArray";
 
 let battles: BattleWithPlayers[] | null = null;
@@ -28,21 +31,16 @@ async function processRequest(searchedLabels: number[]): Promise<{
   factionWinrate: Record<string, number>;
   osToTime: ValueToTimeMapping;
   osAvgOsDiffToTime: ValueToTimeMapping;
-}> {
+  osTeamToTime: ValueToTimeMapping;
+  osTeamAvgOsDiffToTime: ValueToTimeMapping;
+} | null> {
   assert(battles !== null);
   assert(playerBattles !== null);
   assert(playerIndexes !== null);
   assert(clusterLabels !== null);
   assert(labelCount !== null);
   if (searchedLabels.length === 0)
-    return {
-      pointCount: 0,
-      positionPreference: 0,
-      factionPreference: {},
-      factionWinrate: {},
-      osToTime: {values: new Float64Array(), times: new Float64Array()},
-      osAvgOsDiffToTime: {values: new Float64Array(), times: new Float64Array()},
-    };
+    return null;
 
   return {
     pointCount: count(clusterLabels, (_v, i) => {
@@ -53,6 +51,8 @@ async function processRequest(searchedLabels: number[]): Promise<{
     factionWinrate: calculateFactionWinrate(searchedLabels),
     osToTime: calculateOsToTime(searchedLabels),
     osAvgOsDiffToTime: calculateOsAvgDifferenceToTime(searchedLabels),
+    osTeamToTime: calculateOsTeamToTime(searchedLabels),
+    osTeamAvgOsDiffToTime: calculateOsTeamAvgDifferenceToTime(searchedLabels),
   };
 }
 
@@ -149,6 +149,39 @@ function calculateOsToTime(searchedLabels: number[]) {
   );
 }
 
+function calculateOsTeamToTime(searchedLabels: number[]) {
+  const filteredBattles = battlesWithLabelIndexes(searchedLabels);
+  return calculateParamToTime(
+    filteredBattles,
+    ({ playerIndexes }) => {
+      const team0Sum = sumArray(
+        playerIndexes.map((v) => {
+          const player = getPlayer(v);
+          if (player.battleTeamNumber === 0) {
+            return player.skill ?? 0;
+          } else {
+            return 0;
+          }
+        }),
+      );
+      const team1Sum = sumArray(
+        playerIndexes.map((v) => {
+          const player = getPlayer(v);
+          if (player.battleTeamNumber === 1) {
+            return player.skill ?? 0;
+          } else {
+            return 0;
+          }
+        }),
+      );
+      return team0Sum - team1Sum;
+    },
+    ({ battle }) => {
+      return battle.key.durationMs / 1000 / 60;
+    },
+  );
+}
+
 function calculateOsAvgDifferenceToTime(searchedLabels: number[]) {
   const filteredBattles = battlesWithLabelIndexes(searchedLabels);
   return calculateParamToTime(
@@ -159,6 +192,36 @@ function calculateOsAvgDifferenceToTime(searchedLabels: number[]) {
           (v) => (getPlayer(v).skill ?? 0) - (battle.key.averageOs ?? 0),
         ),
       );
+    },
+    ({ battle }) => {
+      return battle.key.durationMs / 1000 / 60;
+    },
+  );
+}
+
+function calculateOsTeamAvgDifferenceToTime(searchedLabels: number[]) {
+  const filteredBattles = battlesWithLabelIndexes(searchedLabels);
+  //const searchedLabel
+  return calculateParamToTime(
+    filteredBattles,
+    ({ battle, playerIndexes }) => {
+      const team0Sum = sumArray(
+        playerIndexes.map((v) => {
+          const player = getPlayer(v);
+          if (player.battleTeamNumber === 0)
+            return (player.skill ?? 0) - (battle.key.averageOs ?? 0);
+          else return 0;
+        }),
+      );
+      const team1Sum = sumArray(
+        playerIndexes.map((v) => {
+          const player = getPlayer(v);
+          if (player.battleTeamNumber === 1)
+            return (player.skill ?? 0) - (battle.key.averageOs ?? 0);
+          else return 0;
+        }),
+      );
+      return team0Sum - team1Sum;
     },
     ({ battle }) => {
       return battle.key.durationMs / 1000 / 60;
@@ -221,8 +284,10 @@ export type ClusterPostprocessingResult =
         factionWinrate: Record<string, number>;
         osToTime: ValueToTimeMapping;
         osAvgOsDiffToTime: ValueToTimeMapping;
+        osTeamToTime: ValueToTimeMapping;
+        osTeamAvgOsDiffToTime: ValueToTimeMapping;
         //preferenceToTime: [number, number][];
-      };
+      } | null;
     };
 
 onmessage = new WorkerServer<
