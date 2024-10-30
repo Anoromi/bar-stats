@@ -369,7 +369,7 @@ function updateSelectedColors(event: SelectChangedPayload) {
               <Hint class="sm:w-96">
                 This chart reflects on how summed up os of players in teams
                 corresponds to battle time. <br />
-                <b>For example,</b> for 2 players from red team (player3, player4) and 2 players (player3, player4) from blue in a
+                <b>For example,</b> for 2 players from red team (player1, player2) and 2 players (player3, player4) from blue in a
                 battle we will get formula
                 <blockquote class="text-foreground-variant">
                   (player1_os + player2_os) - (player3_os + player4_os)
