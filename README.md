@@ -1,6 +1,6 @@
-# Nuxt 3 Minimal Starter
+# BAR Charted
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Discover what lies in the data of BAR maps
 
 ## Setup
 
@@ -19,6 +19,20 @@ yarn install
 # bun
 bun install
 ```
+
+## Database
+
+This project uses sqlite for data storage.
+To run the project locally you need to:
+
+1. Create `.env` file with NUXT_DB_URL and NUXT_DB_AUTH_TOKEN (if you have one). You can also
+   use an sqlite file.
+   ```env
+       NUXT_DB_URL=file:local.db
+   ```
+1. Install dependencies.
+1. Run the server.
+1. Call /api/syncDatabase?highLength=true (Optionally you can edit number of days collected in `./server/utils/services/syncService.ts`)
 
 ## Development Server
 
