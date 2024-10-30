@@ -50,7 +50,7 @@ export type NamedColor = [color: string, name: string]
 export function getUniformColorRed(index: number) : NamedColor {
   if (index > blueUniformColors.length) {
     console.error("Requested too many colors", index);
-    return [randColor(), "Unknown"];
+    return [randColor(), "Player " + index];
   }
   return redUniformColors[index];
 }
@@ -58,7 +58,7 @@ export function getUniformColorRed(index: number) : NamedColor {
 export function getUniformColorBlue(index: number) : NamedColor {
   if (index > redUniformColors.length) {
     console.error("Requested too many colors", index);
-    return [randColor(), "Unknown"];
+    return [randColor(), "Player " + index];
   }
   return blueUniformColors[index];
 }
@@ -68,8 +68,7 @@ export function getAnyUniformColor(index: number) : NamedColor {
     index >= blueUniformColors.length &&
     index >= blueUniformColors.length + redUniformColors.length
   ) {
-    //console.error("Requested too many colors", index);
-    return [randColor(), "Unknown"];
+    return [randColor(), "Player " + index];
   }
   if (index >= blueUniformColors.length) {
     return redUniformColors[index - blueUniformColors.length];
