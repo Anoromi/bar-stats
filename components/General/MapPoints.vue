@@ -108,7 +108,7 @@ const labelColors = computed(() => {
 
   console.log("series", series);
   for (const [index, { labelId: labelValue, teamNumber }] of series) {
-    if (teamNumber === 0) {
+    if (teamNumber === 1) {
       colors[index] = [
         ...getUniformColorRed(teamIndex[teamNumber]),
         labelValue,
@@ -194,12 +194,12 @@ const options = computed<ECOption>(() => {
             return labelColors.value[i][1];
           },
           textBorderColor: "#000",
-          textBorderWidth: 1.5,
+          textBorderWidth: 1,
           fontWeight: 800,
           fontSize: 20,
           position: "insideBottom",
           distance: 20,
-          color: labelColors.value[i][0],
+          color: "#fff",
         },
         itemStyle: {
           borderType: "solid",
@@ -208,56 +208,6 @@ const options = computed<ECOption>(() => {
         },
       } as ScatterSeriesOption;
     }),
-    //series: labels.value.map((v, labelIndex) => {
-    //  const pointCenter = avgPoint(v[1], ([playerIndex, battleIndex]) => {
-    //    const player = props.battles[battleIndex].values[playerIndex];
-    //    return [player.startPosX!, player.startPosZ!];
-    //  });
-    //  return {
-    //    name: labelColors.value[labelIndex][1],
-    //    coordinateSystem: "geo",
-    //    symbolSize: [20, 20],
-    //    type: "scatter",
-    //    selectedMode: "series",
-
-    //    data: [[pointCenter[0], pointCenter[1], labelIndex]],
-    //    color: labelColors.value[labelIndex][0],
-    //    tooltip: {
-    //      formatter: () => {
-    //        return `Found ${v[1].length} points <br>
-    //                Data ${labelColors.value[labelIndex][1]}
-    //        `;
-    //      },
-    //    },
-    //    emphasis: {
-    //      focus: "self",
-    //    },
-    //    select: {
-    //      itemStyle: {
-    //        borderColor: "#fff",
-    //        borderWidth: 3,
-    //      },
-    //    },
-    //    label: {
-    //      show: true,
-    //      formatter: function () {
-    //        return labelColors.value[labelIndex][1];
-    //      },
-    //      textBorderColor: "#000",
-    //      textBorderWidth: 1.5,
-    //      fontWeight: 800,
-    //      fontSize: 20,
-    //      position: "insideBottom",
-    //      distance: 20,
-    //      color: labelColors.value[labelIndex][0],
-    //    },
-    //    itemStyle: {
-    //      borderType: "solid",
-    //      borderColor: "#000",
-    //      borderWidth: 1,
-    //    },
-    //  } as ScatterSeriesOption;
-    //}),
   };
 });
 
@@ -293,6 +243,7 @@ watch(
         battles: toRaw(props.battles),
         labeledPlayers: toRaw(props.playerClusters),
         labelCount: toRaw(props.clusterCount),
+        teamCount: toRaw(props.maxTeams),
       },
     });
     initialized.value = true;
@@ -381,7 +332,7 @@ function updateSelectedColors(event: SelectChangedPayload) {
             :data="clusterData.factionWinrate" class="mt-8" />
         </TabsContent>
         <TabsContent value="combined os">
-          <OsToTimeChart v-if="clusterData.osToTime.times.length > 0" :data="clusterData.osToTime"
+          <OsToTimeChart :data="clusterData.osToTime.data" :team-win-data="clusterData.osToTime.teamWins"
             title="Combined position os to time" x-label="combined os">
             <template #hint>
               <Hint>
@@ -395,8 +346,8 @@ function updateSelectedColors(event: SelectChangedPayload) {
               </Hint>
             </template>
           </OsToTimeChart>
-          <OsToTimeChart v-if="clusterData.osAvgOsDiffToTime.times.length > 0" :data="clusterData.osAvgOsDiffToTime"
-            title="Combine os difference" x-label="combined os">
+          <OsToTimeChart :data="clusterData.osAvgOsDiffToTime.data" :team-win-data="clusterData.osAvgOsDiffToTime.teamWins"
+            title="Combined os factor to time" x-label="combined os">
             <template #hint>
               <Hint class="sm:w-96">
                 This chart is similar to combined position os to time. <br />
@@ -412,13 +363,13 @@ function updateSelectedColors(event: SelectChangedPayload) {
           </OsToTimeChart>
         </TabsContent>
         <TabsContent value="team os">
-          <OsToTimeChart v-if="clusterData.osTeamToTime.times.length > 0" :data="clusterData.osTeamToTime"
-            title="Team os diff to time" x-label="team os diff">
+          <OsToTimeChart :data="clusterData.osTeamToTime.data" :team-win-data="clusterData.osTeamToTime.teamWins"
+            title="Team os difference to time" x-label="team os diff">
             <template #hint>
               <Hint class="sm:w-96">
                 This chart reflects on how summed up os of players in teams
                 corresponds to battle time. <br />
-                <b>For example,</b> for 4 players from team 0 and team 1 in a
+                <b>For example,</b> for 2 players from red team (player3, player4) and 2 players (player3, player4) from blue in a
                 battle we will get formula
                 <blockquote class="text-foreground-variant">
                   (player1_os + player2_os) - (player3_os + player4_os)
@@ -426,15 +377,16 @@ function updateSelectedColors(event: SelectChangedPayload) {
               </Hint>
             </template>
           </OsToTimeChart>
-          <OsToTimeChart v-if="clusterData.osTeamAvgOsDiffToTime.times.length > 0"
-            :data="clusterData.osTeamAvgOsDiffToTime" title="Team os difference" x-label="team os diff">
+          <OsToTimeChart :data="clusterData.osTeamAvgOsDiffToTime.data"
+            :team-win-data="clusterData.osTeamAvgOsDiffToTime.teamWins" title="Team os factor difference to time"
+            x-label="Team os diff">
             <template #hint>
               <Hint class="sm:w-96">
                 This chart is similar to team position os to time. <br />
                 However, instead of taking os, this chart uses difference
                 between player os and average os in a battle. <br />
-                <b>For example,</b> for 4 players from 2 teams in a
-                battle we will get formula
+                <b>For example,</b> for 4 players from 2 teams in a battle we
+                will get formula
                 <blockquote class="text-foreground-variant">
                   ((player1_os - average_os) + (player2_os - average_os)) -
                   ((player3_os - average_os) + (player4_os - average_os))

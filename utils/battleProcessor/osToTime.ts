@@ -3,9 +3,15 @@ import { FixedRingBuffer } from "../other/ringBuffer";
 import type { MovingAverageOptions } from "~/rstar/pkg/bar_stats_wasm";
 
 export type ValueToTimeMapping = {
-    values: Float64Array;
-    times: Float64Array;
-}
+  values: Float64Array;
+  times: Float64Array;
+};
+
+export type ValueToTimeMappingWithExtra<V> = {
+  values: Float64Array;
+  times: Float64Array;
+  extra: V[];
+};
 
 export function calculateAvgOsToTime(
   battles: BattleWithPlayers[],
@@ -44,7 +50,7 @@ export function calculateOsDiffToTime(
 
 export function calculateMinOsToTime(
   battles: BattleWithPlayers[],
-): ValueToTimeMapping{
+): ValueToTimeMapping {
   return calculateParamToTime(
     battles,
     (v) => {
@@ -73,12 +79,23 @@ export function calculateMaxOsToTime(
     (battle) => battle.key.durationMs / 1000 / 60,
   );
 }
-
 export function calculateParamToTime<T>(
   values: T[],
   extractValue: (a: T) => number | null,
   extractTime: (a: T) => number,
-): ValueToTimeMapping{
+): ValueToTimeMapping;
+export function calculateParamToTime<T, V>(
+  values: T[],
+  extractValue: (a: T) => number | null,
+  extractTime: (a: T) => number,
+  extractExtraValue: (a: T) => V,
+): ValueToTimeMappingWithExtra<V>;
+export function calculateParamToTime<T, V = unknown>(
+  values: T[],
+  extractValue: (a: T) => number | null,
+  extractTime: (a: T) => number,
+  extractExtraValue?: (a: T) => V,
+): unknown {
   const sortedBattles = [...values].sort((a, b) => {
     const va = extractValue(a);
     const vb = extractValue(b);
@@ -90,6 +107,8 @@ export function calculateParamToTime<T>(
 
   const valueArr = new Float64Array(sortedBattles.length);
   const timeArr = new Float64Array(sortedBattles.length);
+  const extraArr: V[] | null =
+    extractExtraValue !== undefined ? Array(sortedBattles.length) : null;
   for (let i = 0; i < sortedBattles.length; i++) {
     const v = extractValue(sortedBattles[i]);
     if (v === null) {
@@ -97,12 +116,21 @@ export function calculateParamToTime<T>(
     }
     valueArr[i] = v;
     timeArr[i] = extractTime(sortedBattles[i]);
+    if (extraArr !== null) {
+      extraArr[i] = extractExtraValue!(sortedBattles[i]);
+    }
   }
 
+  if(extraArr === null)
   return {
     values: valueArr,
-    times: timeArr
+    times: timeArr,
   };
+  return {
+    values: valueArr,
+    times: timeArr,
+    extra: extraArr
+  }
 }
 
 export async function smoothValues(

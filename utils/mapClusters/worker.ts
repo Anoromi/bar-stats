@@ -6,6 +6,7 @@ import type { LabeledPlayer } from "../battleProcessor/labeledPlayers";
 import {
   calculateParamToTime,
   type ValueToTimeMapping,
+  type ValueToTimeMappingWithExtra,
 } from "../battleProcessor/osToTime";
 import { sumArray } from "../other/sumArray";
 
@@ -14,6 +15,7 @@ let playerBattles: number[] | null = null;
 let playerIndexes: number[] | null = null;
 let clusterLabels: number[] | null = null;
 let labelCount: number | null = null;
+let teamCount: number | null = null;
 
 function getPlayerBattle(index: number) {
   return battles![playerBattles![index]];
@@ -25,22 +27,32 @@ function getPlayer(index: number) {
 
 async function processRequest(searchedLabels: number[]): Promise<{
   pointCount: number;
-  //positionImportance: number;
   positionPreference: number;
   factionPreference: Record<string, number>;
   factionWinrate: Record<string, number>;
-  osToTime: ValueToTimeMapping;
-  osAvgOsDiffToTime: ValueToTimeMapping;
-  osTeamToTime: ValueToTimeMapping;
-  osTeamAvgOsDiffToTime: ValueToTimeMapping;
+  osToTime: {
+    data: ValueToTimeMapping;
+    teamWins: ValueToTimeMapping[];
+  };
+  osAvgOsDiffToTime: {
+    data: ValueToTimeMapping;
+    teamWins: ValueToTimeMapping[];
+  };
+  osTeamToTime: {
+    data: ValueToTimeMapping;
+    teamWins: ValueToTimeMapping[];
+  };
+  osTeamAvgOsDiffToTime: {
+    data: ValueToTimeMapping;
+    teamWins: ValueToTimeMapping[];
+  };
 } | null> {
   assert(battles !== null);
   assert(playerBattles !== null);
   assert(playerIndexes !== null);
   assert(clusterLabels !== null);
   assert(labelCount !== null);
-  if (searchedLabels.length === 0)
-    return null;
+  if (searchedLabels.length === 0) return null;
 
   return {
     pointCount: count(clusterLabels, (_v, i) => {
@@ -136,9 +148,12 @@ function calculateFactionWinrate(searchedLabels: number[]) {
   return results;
 }
 
-function calculateOsToTime(searchedLabels: number[]) {
+function calculateOsToTime(searchedLabels: number[]): {
+  data: ValueToTimeMapping;
+  teamWins: ValueToTimeMapping[];
+} {
   const filteredBattles = battlesWithLabelIndexes(searchedLabels);
-  return calculateParamToTime(
+  const sortedOs = calculateParamToTime(
     filteredBattles,
     ({ playerIndexes }) => {
       return sumArray(playerIndexes.map((v) => getPlayer(v).skill ?? 0));
@@ -146,12 +161,26 @@ function calculateOsToTime(searchedLabels: number[]) {
     ({ battle }) => {
       return battle.key.durationMs / 1000 / 60;
     },
+    ({ battle }) => {
+      return battle.key.winningTeam!;
+    },
   );
+
+  return {
+    data: {
+      values: sortedOs.values,
+      times: sortedOs.times,
+    },
+    teamWins: groupByTeamWin(sortedOs),
+  };
 }
 
-function calculateOsTeamToTime(searchedLabels: number[]) {
+function calculateOsTeamToTime(searchedLabels: number[]): {
+  data: ValueToTimeMapping;
+  teamWins: ValueToTimeMapping[];
+} {
   const filteredBattles = battlesWithLabelIndexes(searchedLabels);
-  return calculateParamToTime(
+  const sortedOs = calculateParamToTime(
     filteredBattles,
     ({ playerIndexes }) => {
       const team0Sum = sumArray(
@@ -179,12 +208,26 @@ function calculateOsTeamToTime(searchedLabels: number[]) {
     ({ battle }) => {
       return battle.key.durationMs / 1000 / 60;
     },
+    ({ battle }) => {
+      return battle.key.winningTeam!;
+    },
   );
+
+  return {
+    data: {
+      values: sortedOs.values,
+      times: sortedOs.times,
+    },
+    teamWins: groupByTeamWin(sortedOs),
+  };
 }
 
-function calculateOsAvgDifferenceToTime(searchedLabels: number[]) {
+function calculateOsAvgDifferenceToTime(searchedLabels: number[]): {
+  data: ValueToTimeMapping;
+  teamWins: ValueToTimeMapping[];
+} {
   const filteredBattles = battlesWithLabelIndexes(searchedLabels);
-  return calculateParamToTime(
+  const sortedOs = calculateParamToTime(
     filteredBattles,
     ({ battle, playerIndexes }) => {
       return sumArray(
@@ -196,13 +239,26 @@ function calculateOsAvgDifferenceToTime(searchedLabels: number[]) {
     ({ battle }) => {
       return battle.key.durationMs / 1000 / 60;
     },
+    ({ battle }) => {
+      return battle.key.winningTeam!;
+    },
   );
+
+  return {
+    data: {
+      values: sortedOs.values,
+      times: sortedOs.times,
+    },
+    teamWins: groupByTeamWin(sortedOs),
+  };
 }
 
-function calculateOsTeamAvgDifferenceToTime(searchedLabels: number[]) {
+function calculateOsTeamAvgDifferenceToTime(searchedLabels: number[]): {
+  data: ValueToTimeMapping;
+  teamWins: ValueToTimeMapping[];
+} {
   const filteredBattles = battlesWithLabelIndexes(searchedLabels);
-  //const searchedLabel
-  return calculateParamToTime(
+  const sortedOs = calculateParamToTime(
     filteredBattles,
     ({ battle, playerIndexes }) => {
       const team0Sum = sumArray(
@@ -226,7 +282,18 @@ function calculateOsTeamAvgDifferenceToTime(searchedLabels: number[]) {
     ({ battle }) => {
       return battle.key.durationMs / 1000 / 60;
     },
+    ({ battle }) => {
+      return battle.key.winningTeam!;
+    },
   );
+
+  return {
+    data: {
+      values: sortedOs.values,
+      times: sortedOs.times,
+    },
+    teamWins: groupByTeamWin(sortedOs),
+  };
 }
 
 function battlesWithLabelIndexes(searchedLabels: number[]) {
@@ -254,56 +321,95 @@ function battlesWithLabelIndexes(searchedLabels: number[]) {
     .toArray();
 }
 
+function groupByTeamWin({
+  times,
+  values,
+  extra,
+}: ValueToTimeMappingWithExtra<number>): ValueToTimeMapping[] {
+  const teamWinGroups = Array(teamCount!)
+    .fill(0)
+    .map(
+      (_) =>
+        ({
+          values: [],
+          times: [],
+        }) as { values: number[]; times: number[] },
+    );
+  for (let i = 0; i < extra.length; i++) {
+    const teamWins = teamWinGroups[extra[i]];
+    teamWins.values.push(values[i]);
+    teamWins.times.push(times[i]);
+  }
+  return teamWinGroups.map((v) => ({
+    values: Float64Array.from(v.values),
+    times: Float64Array.from(v.times),
+  }));
+}
+
 export type ClusterPostprocessingRequest =
   | {
-      type: "init";
-      params: {
-        battles: BattleWithPlayers[] | null;
-        labeledPlayers: LabeledPlayer[];
-        labelCount: number | null;
-      };
-    }
-  | {
-      type: "evaluate";
-      params: {
-        labels: number[];
-      };
+    type: "init";
+    params: {
+      battles: BattleWithPlayers[];
+      labeledPlayers: LabeledPlayer[];
+      labelCount: number;
+      teamCount: number;
     };
+  }
+  | {
+    type: "evaluate";
+    params: {
+      labels: number[];
+    };
+  };
 
 export type ClusterPostprocessingResult =
   | {
-      type: "init";
-    }
+    type: "init";
+  }
   | {
-      type: "evaluate";
-      data: {
-        pointCount: number;
-        //posi/tionImportance: number;
-        positionPreference: number;
-        factionPreference: Record<string, number>;
-        factionWinrate: Record<string, number>;
-        osToTime: ValueToTimeMapping;
-        osAvgOsDiffToTime: ValueToTimeMapping;
-        osTeamToTime: ValueToTimeMapping;
-        osTeamAvgOsDiffToTime: ValueToTimeMapping;
-        //preferenceToTime: [number, number][];
-      } | null;
-    };
+    type: "evaluate";
+    data: {
+      pointCount: number;
+      positionPreference: number;
+      factionPreference: Record<string, number>;
+      factionWinrate: Record<string, number>;
+      osToTime: {
+        data: ValueToTimeMapping;
+        teamWins: ValueToTimeMapping[];
+      };
+      osAvgOsDiffToTime: {
+        data: ValueToTimeMapping;
+        teamWins: ValueToTimeMapping[];
+      };
+      osTeamToTime: {
+        data: ValueToTimeMapping;
+        teamWins: ValueToTimeMapping[];
+      };
+      osTeamAvgOsDiffToTime: {
+        data: ValueToTimeMapping;
+        teamWins: ValueToTimeMapping[];
+      };
+    } | null;
+  };
 
 onmessage = new WorkerServer<
   ClusterPostprocessingRequest,
   ClusterPostprocessingResult
 >(async (_, data) => {
   switch (data.type) {
-    case "init":
-      battles = data.params.battles;
-      playerBattles = data.params.labeledPlayers.map((v) => v[1]);
-      playerIndexes = data.params.labeledPlayers.map((v) => v[0]);
-      clusterLabels = data.params.labeledPlayers.map((v) => v[2]);
-      labelCount = data.params.labelCount;
+    case "init": {
+      const { params } = data;
+      battles = params.battles;
+      playerBattles = params.labeledPlayers.map((v) => v[1]);
+      playerIndexes = params.labeledPlayers.map((v) => v[0]);
+      clusterLabels = params.labeledPlayers.map((v) => v[2]);
+      labelCount = params.labelCount;
+      teamCount = params.teamCount;
       return {
         type: "init",
       };
+    }
     case "evaluate":
       return {
         type: "evaluate",
