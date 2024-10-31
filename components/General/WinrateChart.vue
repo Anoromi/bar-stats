@@ -32,7 +32,6 @@ const divElement = useTemplateRef<HTMLElement>("div");
 const size = useElementSize(divElement);
 
 const option = computed<ECOption>(() => {
-  if (size.width.value === 0) return {};
   const colors = factionWinrate.value.map((v) => {
     switch (v.name) {
       case "Armada":
@@ -78,6 +77,7 @@ const { theme } = useEChartThemes();
       :option="option"
       :init-options="{
         height: 400,
+        width: size.width.value
       }"
       :theme="theme"
       class="h-[400px] w-full"
