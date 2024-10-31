@@ -1,7 +1,7 @@
 import type { MapDto } from "~/server/utils/dto/dto";
 import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 import { assert } from "../other/assert";
-import { depthClusterize } from "./clusterize";
+import { densityClusterize } from "./clusterize";
 import type { LabeledPlayer } from "./labeledPlayers";
 
 export async function clusterizePlayers(
@@ -46,7 +46,7 @@ export async function clusterizePlayers(
   }
 
   console.time("clusterize");
-  const { data: clusterLabels, clusterCount } = await depthClusterize(
+  const { data: clusterLabels, clusterCount } = await densityClusterize(
     players,
     (player) => ({
       x: player.player.startPosX!,
@@ -55,6 +55,7 @@ export async function clusterizePlayers(
     }),
     1000,
     20,
+    10
   );
   console.timeEnd("clusterize");
 
@@ -73,3 +74,4 @@ export async function clusterizePlayers(
     clusterCount,
   };
 }
+

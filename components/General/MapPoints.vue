@@ -43,12 +43,10 @@ const labels = computed(() => {
     map.set(entry[2], arr);
   }
 
-  const maxExpected = Math.max(...[...map.entries()].map((v) => v[1].length));
-  const filteredLabels = [...map.entries()].filter(
-    (v) => v[1].length > maxExpected / 10,
-  );
-  filteredLabels.sort((a, b) => b[1].length - a[1].length);
-  return filteredLabels;
+  const labelCopy = [...map.entries()].filter(v => v[0] !== 0);
+
+  labelCopy.sort((a, b) => b[1].length - a[1].length);
+  return labelCopy;
 });
 
 const mapAspectRatio = computed(() => {

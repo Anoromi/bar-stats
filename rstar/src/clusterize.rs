@@ -1,4 +1,4 @@
-use std::convert::TryInto;
+use std::{convert::{TryFrom, TryInto}, ops::Deref};
 
 use rstar::{primitives::GeomWithData, RTree, RTreeObject, AABB};
 use wasm_bindgen::prelude::wasm_bindgen;
@@ -74,31 +74,16 @@ const NOISE_LABEL: i32 = 0;
 #[derive(Debug)]
 pub struct DepthClusterizationResults {
     #[wasm_bindgen(getter_with_clone)]
-    pub labels: Vec<i32>,
+    pub labels: Vec<u32>,
     pub cluster_count: u32,
 }
 
-#[wasm_bindgen]
-pub fn depth_clusterize(
+fn db_clusterize(
+    rtree: &RTree<GeomWithData<[f64; 2], BarPlayerData>>,
     data: Vec<BarPartialPlayerData>,
     eps: f64,
     min_pts: u32,
 ) -> DepthClusterizationResults {
-    let player_data = data.iter().enumerate().map(|(i,v)| {
-        GeomWithData::new(
-            [v.x, v.y],
-            BarPlayerData {
-                x: v.x,
-                y: v.y,
-                index: i.try_into().unwrap(),
-                battle_index: v.battle_index,
-            },
-        )
-    }).collect::<Vec<_>>();
-
-    let rtree: RTree<GeomWithData<[f64; 2], BarPlayerData>> = RTree::bulk_load(player_data);
-
-
     fn range_query(
         rtree: &RTree<GeomWithData<[f64; 2], BarPlayerData>>,
         x: f64,
@@ -152,8 +137,69 @@ pub fn depth_clusterize(
         }
     }
     return DepthClusterizationResults {
-        labels,
+        labels: labels.into_iter().map(|v| v.try_into().unwrap()).collect(),
         cluster_count: label_count.try_into().unwrap(),
+    };
+}
+
+#[wasm_bindgen]
+pub fn clusterize_with_limit(
+    data: Vec<BarPartialPlayerData>,
+    eps: f64,
+    min_pts: u32,
+    _max_pts: u32,
+    cluster_size_factor_threshold: u32,
+) -> DepthClusterizationResults {
+    let player_data = data
+        .iter()
+        .enumerate()
+        .map(|(i, v)| {
+            GeomWithData::new(
+                [v.x, v.y],
+                BarPlayerData {
+                    x: v.x,
+                    y: v.y,
+                    index: i.try_into().unwrap(),
+                    battle_index: v.battle_index,
+                },
+            )
+        })
+        .collect::<Vec<_>>();
+
+    let rtree: RTree<GeomWithData<[f64; 2], BarPlayerData>> = RTree::bulk_load(player_data);
+
+    let DepthClusterizationResults {
+        mut labels,
+        cluster_count,
+    } = db_clusterize(&rtree, data, eps, min_pts);
+    let mut label_point_counts = vec![0u32; cluster_count.try_into().unwrap()];
+
+    for v in labels.iter() {
+        let normalized_label: usize = (*v).try_into().unwrap();
+        label_point_counts[normalized_label] += 1;
+    }
+
+    let max_points = *label_point_counts.iter().max().unwrap();
+
+    let min_cluster_size = max_points / cluster_size_factor_threshold;
+
+    let remove_label = label_point_counts.iter().map(|v| v < &min_cluster_size).collect::<Vec<_>>();
+
+    for label in labels.iter_mut() {
+        if remove_label[usize::try_from(*label).unwrap()] {
+            *label = 0;
+        }
+    }
+
+    //let 
+    // TODO Add overflowing splitting
+    // let overflowing_labels = point_count
+    //     .into_iter()
+    //     .enumerate()
+    //     .filter(|v| v.1 > max_pts);
+    return DepthClusterizationResults {
+        labels,
+        cluster_count,
     };
 }
 
@@ -162,7 +208,7 @@ mod test {
 
     use wasm_bindgen_test::wasm_bindgen_test;
 
-    use crate::clusterize::{depth_clusterize, BarPartialPlayerData};
+    use crate::clusterize::{clusterize_with_limit, db_clusterize, BarPartialPlayerData};
 
     #[wasm_bindgen_test]
     fn test_clusterize() {
@@ -176,16 +222,14 @@ mod test {
             BarPartialPlayerData::new(0, 11.0, 12.0),
         ];
 
-        let result = depth_clusterize(data, 5.0, 2);
+        let result = clusterize_with_limit(data, 5.0, 2, 1000);
         assert_eq!(result.cluster_count, 4);
     }
 
     #[wasm_bindgen_test]
     fn test_empty_cluster() {
-        let data = vec![
-        ];
+        let data = vec![];
 
-        
-        let result = depth_clusterize(data, 5.0, 2);
+        let result = db_clusterize(data, 5.0, 2, 1000);
     }
 }

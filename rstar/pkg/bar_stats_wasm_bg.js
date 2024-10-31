@@ -76,20 +76,6 @@ function getArrayU32FromWasm0(ptr, len) {
     return getUint32ArrayMemory0().subarray(ptr / 4, ptr / 4 + len);
 }
 
-let cachedInt32ArrayMemory0 = null;
-
-function getInt32ArrayMemory0() {
-    if (cachedInt32ArrayMemory0 === null || cachedInt32ArrayMemory0.byteLength === 0) {
-        cachedInt32ArrayMemory0 = new Int32Array(wasm.memory.buffer);
-    }
-    return cachedInt32ArrayMemory0;
-}
-
-function getArrayI32FromWasm0(ptr, len) {
-    ptr = ptr >>> 0;
-    return getInt32ArrayMemory0().subarray(ptr / 4, ptr / 4 + len);
-}
-
 let WASM_VECTOR_LEN = 0;
 
 function passArray32ToWasm0(arg, malloc) {
@@ -112,12 +98,14 @@ function passArrayJsValueToWasm0(array, malloc) {
  * @param {(BarPartialPlayerData)[]} data
  * @param {number} eps
  * @param {number} min_pts
+ * @param {number} _max_pts
+ * @param {number} cluster_size_factor_threshold
  * @returns {DepthClusterizationResults}
  */
-export function depth_clusterize(data, eps, min_pts) {
+export function clusterize_with_limit(data, eps, min_pts, _max_pts, cluster_size_factor_threshold) {
     const ptr0 = passArrayJsValueToWasm0(data, wasm.__wbindgen_malloc);
     const len0 = WASM_VECTOR_LEN;
-    const ret = wasm.depth_clusterize(ptr0, len0, eps, min_pts);
+    const ret = wasm.clusterize_with_limit(ptr0, len0, eps, min_pts, _max_pts, cluster_size_factor_threshold);
     return DepthClusterizationResults.__wrap(ret);
 }
 
@@ -272,7 +260,7 @@ export class DepthClusterizationResults {
         wasm.__wbg_depthclusterizationresults_free(ptr, 0);
     }
     /**
-     * @returns {Int32Array}
+     * @returns {Uint32Array}
      */
     get labels() {
         try {
@@ -280,7 +268,7 @@ export class DepthClusterizationResults {
             wasm.__wbg_get_depthclusterizationresults_labels(retptr, this.__wbg_ptr);
             var r0 = getDataViewMemory0().getInt32(retptr + 4 * 0, true);
             var r1 = getDataViewMemory0().getInt32(retptr + 4 * 1, true);
-            var v1 = getArrayI32FromWasm0(r0, r1).slice();
+            var v1 = getArrayU32FromWasm0(r0, r1).slice();
             wasm.__wbindgen_free(r0, r1 * 4, 4);
             return v1;
         } finally {
@@ -288,7 +276,7 @@ export class DepthClusterizationResults {
         }
     }
     /**
-     * @param {Int32Array} arg0
+     * @param {Uint32Array} arg0
      */
     set labels(arg0) {
         const ptr0 = passArray32ToWasm0(arg0, wasm.__wbindgen_malloc);

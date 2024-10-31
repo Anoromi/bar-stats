@@ -4,9 +4,11 @@
  * @param {(BarPartialPlayerData)[]} data
  * @param {number} eps
  * @param {number} min_pts
+ * @param {number} _max_pts
+ * @param {number} cluster_size_factor_threshold
  * @returns {DepthClusterizationResults}
  */
-export function depth_clusterize(data: (BarPartialPlayerData)[], eps: number, min_pts: number): DepthClusterizationResults;
+export function clusterize_with_limit(data: (BarPartialPlayerData)[], eps: number, min_pts: number, _max_pts: number, cluster_size_factor_threshold: number): DepthClusterizationResults;
 /**
  * @param {Float64Array} values
  * @param {number} length
@@ -36,7 +38,7 @@ export class BarPartialPlayerData {
 export class DepthClusterizationResults {
   free(): void;
   cluster_count: number;
-  labels: Int32Array;
+  labels: Uint32Array;
 }
 export class SpatialIndex {
   free(): void;
