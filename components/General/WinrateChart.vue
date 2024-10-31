@@ -1,4 +1,4 @@
-<script setup lang="tsx">
+<script setup lang="ts">
 import { useElementSize } from "@vueuse/core";
 
 const { data, title } = defineProps<{

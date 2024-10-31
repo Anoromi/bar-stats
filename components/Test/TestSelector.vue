@@ -1,6 +1,6 @@
-<script setup lang="tsx">
+<script setup lang="ts">
 import { CheckIcon, ChevronDownIcon } from "@radix-icons/vue";
-import { isClient, useDebounce } from "@vueuse/core";
+import { useDebounce } from "@vueuse/core";
 import { cn } from "~/lib/utils";
 import type { GetMapSuggestionQuery } from "~/server/api/map-suggestion";
 import type { FieldSlotProps } from "~/utils/types/fieldSlotProps";
@@ -22,9 +22,8 @@ const computedQuery = computed<GetMapSuggestionQuery>(() => {
 
 const { data: mapSuggestions, status } = useFetch("/api/map-suggestion", {
   query: computedQuery,
-  server: false
+  server: false,
 });
-
 </script>
 
 <template>

@@ -1,4 +1,4 @@
-<script setup lang="tsx">
+<script setup lang="ts">
 import { InfoCircledIcon } from "@radix-icons/vue";
 import type { HoverCardContentProps } from "radix-vue";
 import type { HTMLAttributes } from "vue";

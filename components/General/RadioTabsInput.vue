@@ -1,4 +1,4 @@
-<script setup lang="tsx">
+<script setup lang="ts">
 import { RadioGroupRoot, RadioGroupItem } from "radix-vue";
 import { useField } from "vee-validate";
 import FormLabel from "../ui/form/FormLabel.vue";

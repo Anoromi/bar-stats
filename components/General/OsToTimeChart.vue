@@ -1,4 +1,4 @@
-<script setup lang="tsx">
+<script setup lang="ts">
 import type { VChart } from "#build/components";
 import { debouncedRef, useElementSize } from "@vueuse/core";
 import type { LineSeriesOption } from "echarts/charts";
@@ -206,7 +206,7 @@ watch(
 
 <template>
   <div ref="div" class="w-full pb-8">
-    <h4 class="h-9 px-4 pt-2 text-xl font-bold">
+    <h4 class="sm:px-4 pt-2 text-xl font-bold">
       {{ props.title }}
       <slot name="hint" />
     </h4>

@@ -1,5 +1,9 @@
-<script setup lang="tsx">
-import { getUniformColorRed } from "~/utils/other/uniformColor";
+<script setup lang="ts">
+import { useElementSize } from "@vueuse/core";
+import {
+  getUniformColorBlue,
+  getUniformColorRed,
+} from "~/utils/other/uniformColor";
 
 const props = defineProps<{
   data: Record<number, number>;
@@ -19,7 +23,7 @@ const option = computed<ECOption>(() => {
   return {
     xAxis: {
       type: "category",
-      data: factionWinrate.value.map((v) => `Team ${v.name}`),
+      data: factionWinrate.value.map((v) => `Team ${v.name + 1}`),
     },
     yAxis: {
       type: "value",
@@ -28,7 +32,14 @@ const option = computed<ECOption>(() => {
       {
         data: factionWinrate.value.map((v) => v.ratio),
         type: "bar",
-        color: factionWinrate.value.map((_v, i) => getUniformColorRed(i)[0]),
+        color: factionWinrate.value.map((_v, i) => {
+          if (i === 0) {
+            return getUniformColorBlue(i)[0];
+          } else if (i === 1) {
+            return getUniformColorRed(i)[0];
+          }
+          return getUniformColorRed(i)[0];
+        }),
         colorBy: "data",
         itemStyle: {
           borderRadius: [8, 8, 0, 0],
@@ -37,19 +48,17 @@ const option = computed<ECOption>(() => {
     ],
   };
 });
+const divElement = useTemplateRef<HTMLElement>("div");
+const size = useElementSize(divElement);
+
 const { theme } = useEChartThemes();
 </script>
 <template>
-  <div>
+  <div ref="div">
     <h4 class="px-4 pt-2 text-xl font-bold">Team win rate</h4>
-    <VChart
-      ref="winrate-canvas"
-      :option="option"
-      :init-options="{
-        height: 400,
-      }"
-      :theme="theme"
-      class="h-[400px]"
-    ></VChart>
+    <VChart ref="winrate-canvas" :option="option" :init-options="{
+      height: 400,
+      width: size.width.value
+    }" :theme="theme" class="h-[400px]"></VChart>
   </div>
 </template>
