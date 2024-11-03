@@ -63,7 +63,8 @@ export default defineNuxtConfig({
       "TooltipComponent",
       "GraphicComponent",
       "GeoComponent",
-      "LegendComponent"
+      "LegendComponent",
+      "ToolboxComponent"
     ],
     //renderer: ['svg', 'canvas']
   },

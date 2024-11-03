@@ -20,7 +20,7 @@ function getFactionName(name: string) {
     case "Armada":
       return "Armada";
     case "Cortex":
-      return "cortex";
+      return "Cortex";
     case "Unknown":
       return "Legion";
     default:
@@ -53,6 +53,22 @@ const option = computed<ECOption>(() => {
     yAxis: {
       type: "value",
     },
+    tooltip: {},
+    toolbox: {
+      show: true,
+      feature: {
+        saveAsImage: {
+          show: true,
+          title: "Save as image",
+          name: title,
+        },
+        dataView: {
+          show: true,
+          title: "Data View",
+          readOnly: true,
+        },
+      },
+    },
     series: [
       {
         data: factionWinrate.value.map((v) => v.ratio),
@@ -61,6 +77,41 @@ const option = computed<ECOption>(() => {
         colorBy: "data",
         itemStyle: {
           borderRadius: [8, 8, 0, 0],
+        },
+        toolbox: {
+          show: true,
+          feature: {
+            saveAsImage: {
+              show: true,
+              title: "Save as image",
+              name: "Team winrate",
+            },
+            dataView: {
+              show: true,
+              title: "Data View",
+              readOnly: true,
+            },
+          },
+        },
+        tooltip: {
+          valueFormatter: (value) => {
+            if (Array.isArray(value)) {
+              return value
+                .map((v) => {
+                  const vNumber = v as number;
+                  if (vNumber % 1 === 0) {
+                    return vNumber.toString();
+                  }
+                  return (vNumber as number).toFixed(4);
+                })
+                .join(", ");
+            }
+            const vNumber = value as number;
+            if (vNumber % 1 === 0) {
+              return vNumber.toString();
+            }
+            return (vNumber as number).toFixed(4);
+          },
         },
       },
     ],
@@ -77,7 +128,7 @@ const { theme } = useEChartThemes();
       :option="option"
       :init-options="{
         height: 400,
-        width: size.width.value
+        width: size.width.value,
       }"
       :theme="theme"
       class="h-[400px] w-full"

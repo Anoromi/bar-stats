@@ -113,40 +113,42 @@ const option = computed<ECOption | null>(() => {
   const teamValues: LineSeriesOption[] =
     props.teamWinData !== undefined
       ? Array(props.teamWinData.length)
-        .fill(0)
-        .map((_, i) => {
-          let color = undefined;
-          if (i === 1) {
-            color = getUniformColorRed(0);
-          } else if (i === 0) {
-            color = getUniformColorBlue(0);
-          }
+          .fill(0)
+          .map((_, i) => {
+            let color = undefined;
+            if (i === 1) {
+              color = getUniformColorRed(0);
+            } else if (i === 0) {
+              color = getUniformColorBlue(0);
+            }
 
-          return {
-            data: [] as [number, number][],
-            name: teamWinLabels.value[i],
-            type: "line",
-            color: color,
-            emphasis: {},
-            itemStyle: {
-              borderRadius: [8, 8, 0, 0],
-            },
-            showSymbol: false,
-          } as const;
-        })
+            return {
+              data: [] as [number, number][],
+              name: teamWinLabels.value[i],
+              type: "line",
+              color: color,
+              emphasis: {},
+              itemStyle: {
+                borderRadius: [8, 8, 0, 0],
+              },
+              showSymbol: false,
+            } as const;
+          })
       : [];
 
   //const legendLabels = ["All"].concat(...( props.teamWinData?.map(v => v) ?? [] ))
 
   return {
     grid: {
-      bottom: 20,
+      bottom: 60,
       left: 50,
       right: 100,
     },
     xAxis: {
       type: "value",
       name: props.xLabel,
+      nameLocation: "middle",
+      nameGap: 50,
     },
     yAxis: {
       type: "value",
@@ -179,34 +181,39 @@ const option = computed<ECOption | null>(() => {
       },
       ...teamValues,
     ],
-  };
+  } satisfies ECOption;
 });
 
 const chart = useTemplateRef<InstanceType<typeof VChart>>("chart");
 const { theme } = useEChartThemes();
 
 watch(
-  () => [smoothedValues.value, option.value, theme.value] as const,
-  ([newData]) => {
-    if (newData === null) return;
+  () => [smoothedValues.value, option.value, theme.value, chart.value] as const,
+  ([newChartData]) => {
+    if (newChartData === null) return;
+    if (chart.value === null || chart.value.chart === undefined) return;
+
     chart.value!.chart!.setOption({
       series: [
         {
-          data: newData?.mainData ?? [],
+          data: newChartData?.mainData ?? [],
         },
       ].concat(
-        newData?.teamWinData.map((v) => ({
+        newChartData?.teamWinData.map((v) => ({
           data: v.smoothedData,
         })) ?? [],
       ),
     });
+  },
+  {
+    immediate: true,
   },
 );
 </script>
 
 <template>
   <div ref="div" class="w-full pb-8">
-    <h4 class="sm:px-4 pt-2 text-xl font-bold">
+    <h4 class="pt-2 text-xl font-bold sm:px-4">
       {{ props.title }}
       <slot name="hint" />
     </h4>
@@ -215,7 +222,9 @@ watch(
         <b class="pb-2">Roughness factor</b>
         <Slider v-model="roughnessFactor" :max="60" :min="1" :step="0.5" />
         <div class="flex justify-end">
-          <span class="mt-1 text-foreground-variant">Factor {{ roughnessFactor[0] }}</span>
+          <span class="mt-1 text-foreground-variant"
+            >Factor {{ roughnessFactor[0] }}</span
+          >
         </div>
       </div>
       <Select v-model="movingAverageType" class="flex-1">
@@ -225,14 +234,24 @@ watch(
         <SelectContent>
           <SelectGroup>
             <SelectLabel>Moving average type</SelectLabel>
-            <SelectItem v-for="v in allowedMovingAverages" :key="v.key" :value="v.key">
+            <SelectItem
+              v-for="v in allowedMovingAverages"
+              :key="v.key"
+              :value="v.key"
+            >
               {{ v.value }}
             </SelectItem>
           </SelectGroup>
         </SelectContent>
       </Select>
     </div>
-    <VChart v-if="option !== null" ref="chart" :option="option" :theme="theme" :init-options="{ height: 500 }"
-      class="h-[500px] w-full"></VChart>
+    <VChart
+      v-if="option !== null"
+      ref="chart"
+      :option="option"
+      :theme="theme"
+      :init-options="{ height: 500 }"
+      class="h-[500px] w-full"
+    ></VChart>
   </div>
 </template>

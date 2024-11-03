@@ -9,7 +9,7 @@ const props = defineProps<{
   data: Record<number, number>;
 }>();
 
-const factionWinrate = computed(() => {
+const teamWinrate = computed(() => {
   const winrate = props.data;
   return Object.keys(winrate)
     .map((name) => {
@@ -19,24 +19,41 @@ const factionWinrate = computed(() => {
 });
 
 const option = computed<ECOption>(() => {
-  console.log("winrates", factionWinrate.value);
+  console.log("winrates", teamWinrate.value);
   return {
     xAxis: {
       type: "category",
-      data: factionWinrate.value.map((v) => `Team ${v.name + 1}`),
+      data: teamWinrate.value.map((v) => `Team ${parseInt(v.name) + 1}`),
     },
     yAxis: {
       type: "value",
     },
+    tooltip: {},
+    toolbox: {
+      show: true,
+      feature: {
+        saveAsImage: {
+          show: true,
+          title: "Save as image",
+          name: "Team winrate"
+        },
+        dataView: {
+          show: true,
+          title: "Data View",
+          readOnly: true
+          
+        },
+      },
+    },
     series: [
       {
-        data: factionWinrate.value.map((v) => v.ratio),
+        data: teamWinrate.value.map((v) => v.ratio.toFixed(3)),
         type: "bar",
-        color: factionWinrate.value.map((_v, i) => {
+        color: teamWinrate.value.map((_v, i) => {
           if (i === 0) {
-            return getUniformColorBlue(i)[0];
+            return getUniformColorBlue(0)[0];
           } else if (i === 1) {
-            return getUniformColorRed(i)[0];
+            return getUniformColorRed(0)[0];
           }
           return getUniformColorRed(i)[0];
         }),
@@ -48,6 +65,7 @@ const option = computed<ECOption>(() => {
     ],
   };
 });
+
 const divElement = useTemplateRef<HTMLElement>("div");
 const size = useElementSize(divElement);
 
