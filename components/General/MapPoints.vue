@@ -143,22 +143,6 @@ const options = computed<ECOption>(() => {
       bottom: "24px",
     },
     tooltip: {},
-    toolbox: {
-      show: true,
-      feature: {
-        saveAsImage: {
-          show: true,
-          title: "Save as image",
-          name: "Team winrate"
-        },
-        dataView: {
-          show: true,
-          title: "Data View",
-          readOnly: true
-          
-        },
-      },
-    },
     series: [
       ...clusteredPointsData.value.map((series, i) => {
         const { position, labelId, pointCount } = series;
@@ -231,13 +215,6 @@ const options = computed<ECOption>(() => {
           },
           z: 10,
           zlevel: 2,
-
-          //type: ''
-
-          //position: point,
-          //labelId: label[0],
-          //pointCount: label[1].length,
-          //teamNumber: extractPlayer(props.battles, label[1][0]).battleTeamNumber,
         } satisfies ScatterSeriesOption;
       }),
     ],
