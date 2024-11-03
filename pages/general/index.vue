@@ -96,7 +96,7 @@ export type GeneralPageQuery = {
   <article class="flex flex-1 flex-col items-center p-4">
     <div class="flex w-full flex-1 flex-col xl:flex-row xl:justify-center">
       <form
-        class="mb-4 mt-4 flex h-max flex-col gap-y-4 rounded-2xl p-4 sm:mt-10 md:max-w-96 xl:w-96 xl:bg-surface xl:shadow-md"
+        class="relative mb-4 mt-4 flex h-max flex-col gap-y-4 rounded-2xl p-4 sm:mt-10 md:max-w-96 xl:w-96 xl:bg-surface xl:shadow-md"
         @submit="onSubmit"
       >
         <legend class="mb-2 text-lg font-bold">Filter</legend>
@@ -154,121 +154,20 @@ export type GeneralPageQuery = {
         </div>
       </form>
 
-      <div class="flex min-w-0 flex-1 flex-col gap-y-8 py-10 pr-5 xl:pl-20">
-        <!-- <LazyGeneralClusterTest></LazyGeneralClusterTest> -->
-        <template v-if="results !== undefined">
-          <b class="block text-xl">
-            Found {{ results.data.battles.length }} battles
-          </b>
-          <LazyGeneralMapPoints
-            v-if="results.data.labeledPlayers !== undefined"
-            :battles="results.data.battles"
-            :player-clusters="results.data.labeledPlayers!"
-            :map="{
-              name: results.data.map!.fileName!,
-              height: results.data.map!.height!,
-              width: results.data.map!.width!,
-            }"
-            :max-teams="results.data.maxTeamCount"
-            :cluster-count="results.data.clusterCount!"
-          >
-          </LazyGeneralMapPoints>
-          <div class="rounded-xl bg-surface px-2 pt-4 shadow-lg">
-            <Tabs default-value="average-os" class="min-h-[600px]">
-              <TabsList class="flex">
-                <TabsTrigger value="osdiff" class="text-base">
-                  Max - Min os
-                </TabsTrigger>
-                <TabsTrigger value="average-os" class="text-base">
-                  Average os
-                </TabsTrigger>
-                <TabsTrigger value="min-os" class="text-base">
-                  Min os
-                </TabsTrigger>
-                <TabsTrigger value="max-os" class="text-base">
-                  Max os
-                </TabsTrigger>
-              </TabsList>
-              <TabsContent value="osdiff">
-                <LazyGeneralOsToTimeChart
-                  :data="results.data.osDiffToTime"
-                  :title="'Os diff'"
-                  :x-label="'os difference'"
-                >
-                  <template #hint>
-                    <Hint>
-                      This chart reflects on how os difference in a battle
-                      corresponds to battle time. Specifically, the formula used
-                      is (max_player_os - min_player_os)
-                    </Hint>
-                  </template>
-                </LazyGeneralOsToTimeChart>
-              </TabsContent>
-              <TabsContent value="average-os">
-                <LazyGeneralOsToTimeChart
-                  :data="results.data.osToTime"
-                  :title="'Average os'"
-                  :x-label="'average os'"
-                  :max="50"
-                  :min="0"
-                >
-                  <template #hint>
-                    <Hint>
-                      This chart reflects on how average os in a battle
-                      corresponds to battle time. Specifically, the formula used
-                      is (player1_os + player2_os + player3_os + ...) / player_count
-                    </Hint>
-                  </template>
-                </LazyGeneralOsToTimeChart>
-              </TabsContent>
-              <TabsContent value="min-os">
-                <LazyGeneralOsToTimeChart
-                  :data="results.data.minOs"
-                  :title="'Min os'"
-                  :x-label="'min os'"
-                  :max="50"
-                  :min="0"
-                >
-                  <template #hint>
-                    <Hint>
-                      This chart reflects on how min os in a battle corresponds
-                      to battle time.
-                    </Hint>
-                  </template>
-                </LazyGeneralOsToTimeChart>
-              </TabsContent>
-              <TabsContent value="max-os">
-                <LazyGeneralOsToTimeChart
-                  :data="results.data.maxOs"
-                  :title="'Max os'"
-                  :x-label="'max os'"
-                  :max="50"
-                  :min="0"
-                >
-                  <template #hint>
-                    <Hint>
-                      This chart reflects on how max os in a battle corresponds
-                      to battle time.
-                    </Hint>
-                  </template>
-                </LazyGeneralOsToTimeChart>
-              </TabsContent>
-            </Tabs>
-          </div>
-          <LazyGeneralWinrateChart
-            :data="results.data.factionWinrate"
-            class="rounded-xl bg-surface p-2 shadow-lg"
-            title="Faction win factor"
-          >
-          </LazyGeneralWinrateChart>
-
-          <LazyGeneralTeamWinrateChart
-            v-if="results.data.teamWinrate !== undefined"
-            :data="results.data.teamWinrate"
-            class="rounded-xl bg-surface shadow-lg"
-          >
-          </LazyGeneralTeamWinrateChart>
-        </template>
+      <div class="flex min-w-0 flex-1">
+        <LazyGeneralDataDisplay
+          v-if="results !== undefined && results.data.battles.length > 0"
+          :results="results"
+        >
+        </LazyGeneralDataDisplay>
+        <div
+          v-else-if="results !== undefined"
+          class="ml-40 mt-20 flex w-full text-2xl font-bold"
+        >
+          No battles were found for these settings. <br/>
+          Try setting a different battle type, or chose a different map.
+        </div>
+        <div v-else class="flex-1"></div>
       </div>
     </div>
   </article>
