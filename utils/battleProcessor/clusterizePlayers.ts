@@ -46,6 +46,7 @@ export async function clusterizePlayers(
   }
 
   console.time("clusterize");
+  const clusterCoreSize = players.length / 16 / 2;
   const { data: clusterLabels, clusterCount } = await densityClusterize(
     players,
     (player) => ({
@@ -53,8 +54,8 @@ export async function clusterizePlayers(
       y: player.player.startPosZ!,
       battleIndex: player.battleIndex,
     }),
-    1000,
-    20,
+    400,
+    clusterCoreSize,
     10
   );
   console.timeEnd("clusterize");
