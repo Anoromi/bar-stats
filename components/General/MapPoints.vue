@@ -30,6 +30,7 @@ const props = defineProps<{
     width: number;
     height: number;
   };
+  positionPreference: number[];
   clusterCount: number;
   maxTeams: number;
 }>();
@@ -43,7 +44,7 @@ const labels = computed(() => {
     map.set(entry[2], arr);
   }
 
-  const labelCopy = [...map.entries()].filter(v => v[0] !== 0);
+  const labelCopy = [...map.entries()].filter((v) => v[0] !== 0);
 
   labelCopy.sort((a, b) => b[1].length - a[1].length);
   return labelCopy;
@@ -68,7 +69,7 @@ watchEffect(() => {
   });
 });
 
-const seriesData = computed(() => {
+const clusteredPointsData = computed(() => {
   return labels.value.map((label) => {
     const point = avgPoint(label[1], ([playerIndex, battleIndex]) => {
       const player = props.battles[battleIndex].values[playerIndex];
@@ -92,7 +93,7 @@ const labelColors = computed(() => {
   }
   const colors: [string, string, number][] = [];
   const teamIndex = Array(props.maxTeams).fill(0);
-  const series = [...seriesData.value.entries()];
+  const series = [...clusteredPointsData.value.entries()];
   const center = [
     mapHalfSize.value.width / 2,
     mapHalfSize.value.height / 2,
@@ -104,7 +105,6 @@ const labelColors = computed(() => {
     return aDist - bDist;
   });
 
-  console.log("series", series);
   for (const [index, { labelId: labelValue, teamNumber }] of series) {
     if (teamNumber === 1) {
       colors[index] = [
@@ -119,12 +119,10 @@ const labelColors = computed(() => {
     }
     teamIndex[teamNumber]++;
   }
-  console.log("colors", colors);
   return colors;
 });
 
 const options = computed<ECOption>(() => {
-  console.log("labels", labels.value);
   return {
     xAxis: {
       show: false,
@@ -144,68 +142,105 @@ const options = computed<ECOption>(() => {
       top: "24px",
       bottom: "24px",
     },
-    tooltip: {
-      //show: true,
-      //triggerOn: "none",
-      //formatter: (v) => {
-      //  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      //  const data = (v as any).data;
-      //  console.log('data', data)
-      //  return '' + data[1];
-      //},
-    },
-
-    //tooltip: {
-    //  show: true,
-    //  formatter: (params) => {
-    //  const p = params.data
-    //    //params
-    //    //return labelColors.value[labelIndex][1];
-    //  },
-    //},
-    series: seriesData.value.map((series, i) => {
-      const { position, labelId, pointCount } = series;
-      return {
-        name: labelColors.value[i][1],
-        coordinateSystem: "geo",
-        symbolSize: [20, 20],
-        type: "scatter",
-        selectedMode: "series",
-
-        data: [[position[0], position[1], labelId]],
-        color: labelColors.value[i][0],
-        tooltip: {
-          formatter: () => {
-            return `Found ${pointCount} points <br>
-                    Color ${labelColors.value[i][1]}`;
-          },
-        },
-        select: {
-          itemStyle: {
-            borderColor: "#fff",
-            borderWidth: 3,
-          },
-        },
-        label: {
+    tooltip: {},
+    toolbox: {
+      show: true,
+      feature: {
+        saveAsImage: {
           show: true,
-          formatter: function () {
-            return labelColors.value[i][1];
+          title: "Save as image",
+          name: "Team winrate"
+        },
+        dataView: {
+          show: true,
+          title: "Data View",
+          readOnly: true
+          
+        },
+      },
+    },
+    series: [
+      ...clusteredPointsData.value.map((series, i) => {
+        const { position, labelId, pointCount } = series;
+        return {
+          name: labelColors.value[i][1],
+          coordinateSystem: "geo",
+          symbolSize: [20, 20],
+          type: "scatter",
+          selectedMode: "series",
+
+          data: [[position[0], position[1], labelId]],
+          color: labelColors.value[i][0],
+          tooltip: {
+            formatter: () => {
+              return `Found ${pointCount} points <br>
+                    Color ${labelColors.value[i][1]} <br>
+                    Preference ${props.positionPreference[labelId].toPrecision(4)}`;
+            },
           },
-          textBorderColor: "#000",
-          textBorderWidth: 1,
-          fontWeight: 800,
-          fontSize: 20,
-          position: "insideBottom",
-          distance: 20,
-          color: "#fff",
-        },
-        itemStyle: {
-          borderType: "solid",
-          borderColor: "#000",
-          borderWidth: 1,
-        },
-      } as ScatterSeriesOption;
-    }),
+          select: {
+            itemStyle: {
+              borderColor: "#fff",
+              borderWidth: 3,
+            },
+          },
+          label: {
+            show: true,
+            formatter: function () {
+              return labelColors.value[i][1];
+            },
+            textBorderColor: "#000",
+            textBorderWidth: 1,
+            fontWeight: 800,
+            fontSize: 20,
+            position: "insideBottom",
+            distance: 20,
+            color: "#fff",
+          },
+          itemStyle: {
+            borderType: "solid",
+            borderColor: "#000",
+            borderWidth: 1,
+          },
+          z: 20,
+          zlevel: 2,
+        } satisfies ScatterSeriesOption;
+      }),
+
+      ...labels.value.map((label, i) => {
+        const points = label[1].map(([playerIndex, battleIndex]) => {
+          const player = props.battles[battleIndex].values[playerIndex];
+          return [
+            player.startPosX!,
+            player.startPosZ!,
+          ] as const satisfies unknown[];
+        });
+        return {
+          type: "scatter",
+          color: labelColors.value[i][0],
+          coordinateSystem: "geo",
+          data: points,
+          symbolSize: 6,
+          tooltip: {
+            show: false,
+          },
+          itemStyle: {
+            borderType: "solid",
+            borderColor: "#000",
+            borderWidth: 0.5,
+          },
+          z: 10,
+          zlevel: 2,
+
+          //type: ''
+
+          //position: point,
+          //labelId: label[0],
+          //pointCount: label[1].length,
+          //teamNumber: extractPlayer(props.battles, label[1][0]).battleTeamNumber,
+        } satisfies ScatterSeriesOption;
+      }),
+    ],
   };
 });
 
@@ -267,7 +302,6 @@ const { data: clusterData } = useAsyncData(
         ),
       },
     });
-    console.log("map results", result);
     assert(result.type === "evaluate");
     return result.data;
   },
@@ -278,6 +312,7 @@ const { data: clusterData } = useAsyncData(
 );
 
 function updateSelectedColors(event: SelectChangedPayload) {
+  //console.log("selected", event);
   selectedColors.value = event.selected;
 }
 </script>
@@ -285,20 +320,35 @@ function updateSelectedColors(event: SelectChangedPayload) {
   <div class="flex flex-col rounded-xl bg-surface p-4 shadow-lg">
     <h4 class="px-4 pt-2 text-xl font-bold">Map data</h4>
     <div class="mt-4 flex flex-col lg:flex-row lg:gap-x-5">
-      <VChart ref="chart-ref" v-memo="[options]" :option="options" :init-options="{
-        height: 500 / mapAspectRatio,
-        width: 500,
-      }" class="w-[500px] shrink-0 rounded-xl bg-surface outline outline-1 outline-foreground/30"
-        @selectchanged="updateSelectedColors" />
+      <VChart
+        ref="chart-ref"
+        v-memo="[options]"
+        :option="options"
+        :init-options="{
+          height: 500 / mapAspectRatio,
+          width: 500,
+        }"
+        class="w-[500px] shrink-0 rounded-xl bg-surface outline outline-1 outline-foreground/30"
+        @selectchanged="updateSelectedColors"
+      />
       <div class="flex flex-col">
         <div class="flex h-fit flex-wrap items-start justify-start gap-2 pt-6">
-          <Button v-for="(color, i) in selectedColors" :key="labelColors[color.seriesIndex][0]" variant="destructive"
-            :class="cn('mb-auto box-border flex gap-x-1', {
-              'bg-surface outline outline-1 outline-primary':
-                selectedColors.includes(color),
-            })
-              " @click="() => deselectColor(i)">
-            <div class="h-4 w-4 rounded-full" :style="{ 'background-color': labelColors[color.seriesIndex][0] }"></div>
+          <Button
+            v-for="(color, i) in selectedColors"
+            :key="labelColors[color.seriesIndex][0]"
+            variant="destructive"
+            :class="
+              cn('mb-auto box-border flex gap-x-1', {
+                'bg-surface outline outline-1 outline-primary':
+                  selectedColors.includes(color),
+              })
+            "
+            @click="() => deselectColor(i)"
+          >
+            <div
+              class="h-4 w-4 rounded-full"
+              :style="{ 'background-color': labelColors[color.seriesIndex][0] }"
+            ></div>
             {{ labelColors[color.seriesIndex][1] }}
           </Button>
           <div v-if="selectedColors.length === 0" class="text-lg">
@@ -308,10 +358,14 @@ function updateSelectedColors(event: SelectChangedPayload) {
             </Hint>
           </div>
         </div>
-        <div v-if="clusterData !== null && selectedColors.length > 0" class="mt-4 text-lg">
+        <div
+          v-if="clusterData !== null && selectedColors.length > 0"
+          class="mt-4 text-lg"
+        >
           <p><b>Point count:</b> {{ clusterData.pointCount }}</p>
           <p>
-            <b>Preference:</b> {{ clusterData.positionPreference.toFixed(3) }}
+            <b>Position preference:</b>
+            {{ clusterData.positionPreference.toFixed(3) }}
           </p>
         </div>
       </div>
@@ -324,14 +378,26 @@ function updateSelectedColors(event: SelectChangedPayload) {
           <TabsTrigger value="team os"> Team os </TabsTrigger>
         </TabsList>
         <TabsContent value="winrate" class="w-full">
-          <GeneralWinrateChart v-if="Object.keys(clusterData.factionPreference).length > 0" title="Faction preference"
-            :data="clusterData.factionPreference" class="mt-8" />
-          <GeneralWinrateChart v-if="Object.keys(clusterData.factionWinrate).length > 0" title="Faction winrate"
-            :data="clusterData.factionWinrate" class="mt-8" />
+          <GeneralWinrateChart
+            v-if="Object.keys(clusterData.factionPreference).length > 0"
+            title="Faction preference"
+            :data="clusterData.factionPreference"
+            class="mt-8"
+          />
+          <GeneralWinrateChart
+            v-if="Object.keys(clusterData.factionWinrate).length > 0"
+            title="Faction winrate"
+            :data="clusterData.factionWinrate"
+            class="mt-8"
+          />
         </TabsContent>
         <TabsContent value="combined os">
-          <OsToTimeChart :data="clusterData.osToTime.data" :team-win-data="clusterData.osToTime.teamWins"
-            title="Combined position os to time" x-label="combined os">
+          <OsToTimeChart
+            :data="clusterData.osToTime.data"
+            :team-win-data="clusterData.osToTime.teamWins"
+            title="Combined position os to time"
+            x-label="combined os"
+          >
             <template #hint>
               <Hint>
                 This chart reflects on how summed up os of selected players
@@ -344,8 +410,12 @@ function updateSelectedColors(event: SelectChangedPayload) {
               </Hint>
             </template>
           </OsToTimeChart>
-          <OsToTimeChart :data="clusterData.osAvgOsDiffToTime.data" :team-win-data="clusterData.osAvgOsDiffToTime.teamWins"
-            title="Combined os factor to time" x-label="combined os">
+          <OsToTimeChart
+            :data="clusterData.osAvgOsDiffToTime.data"
+            :team-win-data="clusterData.osAvgOsDiffToTime.teamWins"
+            title="Combined os factor to time"
+            x-label="combined os"
+          >
             <template #hint>
               <Hint class="sm:w-96">
                 This chart is similar to combined position os to time. <br />
@@ -361,23 +431,31 @@ function updateSelectedColors(event: SelectChangedPayload) {
           </OsToTimeChart>
         </TabsContent>
         <TabsContent value="team os">
-          <OsToTimeChart :data="clusterData.osTeamToTime.data" :team-win-data="clusterData.osTeamToTime.teamWins"
-            title="Team os difference to time" x-label="team os diff">
+          <OsToTimeChart
+            :data="clusterData.osTeamToTime.data"
+            :team-win-data="clusterData.osTeamToTime.teamWins"
+            title="Team os difference to time"
+            x-label="team os diff"
+          >
             <template #hint>
               <Hint class="sm:w-96">
                 This chart reflects on how summed up os of players in teams
                 corresponds to battle time. <br />
-                <b>For example,</b> for 2 players from red team (player1, player2) and 2 players (player3, player4) from blue in a
-                battle we will get formula
+                <b>For example,</b> for 2 players from red team (player1,
+                player2) and 2 players (player3, player4) from blue in a battle
+                we will get formula
                 <blockquote class="text-foreground-variant">
                   (player1_os + player2_os) - (player3_os + player4_os)
                 </blockquote>
               </Hint>
             </template>
           </OsToTimeChart>
-          <OsToTimeChart :data="clusterData.osTeamAvgOsDiffToTime.data"
-            :team-win-data="clusterData.osTeamAvgOsDiffToTime.teamWins" title="Team os factor difference to time"
-            x-label="Team os diff">
+          <OsToTimeChart
+            :data="clusterData.osTeamAvgOsDiffToTime.data"
+            :team-win-data="clusterData.osTeamAvgOsDiffToTime.teamWins"
+            title="Team os factor difference to time"
+            x-label="Team os diff"
+          >
             <template #hint>
               <Hint class="sm:w-96">
                 This chart is similar to team position os to time. <br />
