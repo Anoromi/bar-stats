@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "nuxt-echarts",
     "@nuxt/test-utils/module",
+    "nuxt-content-assets",
     "@nuxt/content",
   ],
   shadcn: {
@@ -47,12 +48,6 @@ export default defineNuxtConfig({
         //],
       },
     },
-    serverAssets: [
-      {
-        baseName: "drizzle2",
-        dir: "./drizzle",
-      },
-    ],
   },
   echarts: {
     charts: ["BarChart", "MapChart", "LineChart", "ScatterChart"],
