@@ -50,7 +50,7 @@ function translateAverageOption(
   }
 }
 
-const roughnessFactor = ref([10]);
+const roughnessFactor = ref([5]);
 const debouncedSmoothnessFactor = debouncedRef(roughnessFactor, 50);
 
 const { data: smoothedValues } = useAsyncData(
