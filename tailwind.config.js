@@ -16,7 +16,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: "Noto Sans",
+        sans: "Rubik",
       },
       colors: {
         border: "rgba(var(--foreground), <alpha-value>)",
