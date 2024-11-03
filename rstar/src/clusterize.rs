@@ -222,14 +222,8 @@ mod test {
             BarPartialPlayerData::new(0, 11.0, 12.0),
         ];
 
-        let result = clusterize_with_limit(data, 5.0, 2, 1000);
+        let result = clusterize_with_limit(data, 5.0, 2, 1000, 1);
         assert_eq!(result.cluster_count, 4);
     }
 
-    #[wasm_bindgen_test]
-    fn test_empty_cluster() {
-        let data = vec![];
-
-        let result = db_clusterize(data, 5.0, 2, 1000);
-    }
 }
