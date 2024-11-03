@@ -29,7 +29,6 @@ export function calculateWinrateOfFactions(
         battleFactions[faction].won++;
       else battleFactions[faction].lost++;
     }
-    //console.log("battle", battleFactions);
     for (const key in battleFactions) {
       const playersWon = battle.values.filter(
         (player) => player.battleTeamNumber === battle.key.winningTeam,
@@ -37,26 +36,33 @@ export function calculateWinrateOfFactions(
       const playersLost = battle.values.length - playersWon;
       const factionResults = battleFactions[key];
       factions[key] ??= { winEvaluation: 0, lossEvaluation: 0 };
-      if (playersWon === 0 || playersLost === 0) {
-        console.log("bug", playersWon, playersLost, battle);
-      }
       if (playersWon > 0)
         factions[key].winEvaluation += factionResults.won / playersWon;
       if (playersLost > 0)
         factions[key].lossEvaluation += factionResults.lost / playersLost;
-      //factions[key] = {
-      //  winEvaluation:
-      //    factions[key].winEvaluation + factionResults.won / playersWon,
-      //  lossEvaluation:
-      //    factions[key].lossEvaluation + factionResults.lost / playersLost,
-      //};
     }
   }
   const factionEvaluation: Record<string, number> = {};
   for (const key in factions) {
     factionEvaluation[key] =
-      factions[key].winEvaluation / factions[key].lossEvaluation;
+      factions[key].winEvaluation /
+      (factions[key].winEvaluation + factions[key].lossEvaluation);
   }
-  console.log("faction evaluation", factionEvaluation, factions);
   return factionEvaluation;
+}
+
+export function calculateFactionPreference(
+  battles: BattleFactionWinrateData[],
+) {
+  const factions: Record<string, number> = {};
+
+  for (const battle of battles) {
+    for (const player of battle.values) {
+      if (player.faction === null) continue;
+      factions[player.faction] ??= 0;
+      factions[player.faction]++;
+    }
+  }
+
+  return factions;
 }
