@@ -12,6 +12,7 @@ export default defineNuxtConfig({
     "@nuxt/image",
     "nuxt-echarts",
     "@nuxt/test-utils/module",
+    "@nuxt/content",
   ],
   shadcn: {
     prefix: "",
@@ -19,6 +20,9 @@ export default defineNuxtConfig({
   },
   imports: {
     dirs: ["./composables"],
+  },
+  experimental: {
+    typedPages: true
   },
   components: [
     {
@@ -92,4 +96,9 @@ export default defineNuxtConfig({
     NUXT_DB_URL: "http://127.0.0.1:8080",
     NUXT_DB_AUTH_TOKEN: '',
   },
+  content: {
+    navigation: {
+      fields: ['author', 'publishedAt']
+    }
+  }
 });

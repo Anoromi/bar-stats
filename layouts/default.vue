@@ -49,10 +49,13 @@ useEChartThemes();
         <NuxtLink class="ml-2 text-lg font-bold text-primary" to="/general">
           Overview
         </NuxtLink>
+        <NuxtLink class="ml-2 text-lg font-bold text-primary" to="/blog">
+          Blog
+        </NuxtLink>
       </nav>
       <Popover>
         <PopoverTrigger as-child>
-          <Button variant="link" class="ml-auto">
+          <Button variant="link" class="ml-auto sm:hidden">
             <HamburgerMenuIcon />
           </Button>
         </PopoverTrigger>
@@ -91,10 +94,7 @@ useEChartThemes();
               </NuxtLink>
             </li>
             <li>
-              <NuxtLink
-                class="ml-2 text-lg font-bold text-primary"
-                to="/general"
-              >
+              <NuxtLink class="ml-2 text-lg font-bold text-primary" to="/blog">
                 Blog
               </NuxtLink>
             </li>
