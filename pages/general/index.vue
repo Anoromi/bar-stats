@@ -6,7 +6,8 @@ import type {
   BattlesProcessorRequest,
   BattlesProcessorResponse,
 } from "~/utils/battleProcessor/worker";
-import { toast } from "~/components/ui/toast";
+import type { CancelablePromise } from "~/utils/worker/core/cancelablePromise";
+import { cn } from "~/lib/utils";
 
 const route = useRoute();
 
@@ -29,9 +30,7 @@ const formSchema = toTypedSchema(
       })
       .array()
       .default([]),
-    map: z
-      .string()
-      .optional(),
+    map: z.string().optional(),
     limit: z.enum(allowedDataLimits).default("500"),
     startDate: z.string().date().optional(),
     battleType: z.string().default("8v8"),
@@ -44,22 +43,20 @@ const formSchema = toTypedSchema(
 const form = useForm({
   validationSchema: formSchema,
   initialValues: {
-  map: route.query.map as string,
-  battleType: route.query.battleType as string | undefined,
-  }
+    map: route.query.map as string,
+    battleType: route.query.battleType as string | undefined,
+  },
 });
 
 const { worker } = useWorkerServers().battleProcessorWorker;
 
-const request = shallowRef<unknown>(null);
+const pendingParams = shallowRef<unknown>(null);
+const pendingPromise =
+  shallowRef<CancelablePromise<BattlesProcessorResponse> | null>(null);
 const results = ref<BattlesProcessorResponse>();
 
 const onSubmit = form.handleSubmit((values) => {
   console.log("Form submitted!", values);
-  toast({
-    title: "Form submitted!",
-    description: JSON.stringify(values),
-  });
   const { map, users, limit, battleType, osSelection, waterIsLava, isRanked } =
     form.values;
 
@@ -76,10 +73,15 @@ const onSubmit = form.handleSubmit((values) => {
       rankedGame: isRanked === "Yes",
     },
   } as const;
-  request.value = currentRequest;
-  console.log(worker);
-  worker.value!.request(currentRequest).then((v) => {
-    if (request.value === currentRequest) results.value = v;
+  pendingParams.value = currentRequest;
+  const request = worker.value!.request(currentRequest);
+  pendingPromise.value?.cancel();
+  pendingPromise.value = request;
+  request.then((v) => {
+    if (pendingParams.value === currentRequest) {
+      results.value = v;
+      pendingPromise.value = null;
+    }
   });
 });
 
@@ -91,7 +93,7 @@ function cleanForm() {
 <script lang="ts">
 export type GeneralPageQuery = {
   map: string;
-  battleType: string | null
+  battleType: string | null;
 };
 </script>
 
@@ -155,6 +157,18 @@ export type GeneralPageQuery = {
           >
           <Button type="submit" variant="default" class="flex-1">Search</Button>
         </div>
+        <div
+          :class="
+            cn(
+              'rounded-md px-5 py-1 text-center opacity-100 outline outline-1 outline-foreground/50 transition-opacity duration-300',
+              {
+                'opacity-0': pendingPromise === null
+              },
+            )
+          "
+        >
+          Loading
+        </div>
       </form>
 
       <div class="flex min-w-0 flex-1">
@@ -167,7 +181,7 @@ export type GeneralPageQuery = {
           v-else-if="results !== undefined"
           class="ml-40 mt-20 flex w-full text-2xl font-bold"
         >
-          No battles were found for these settings. <br/>
+          No battles were found for these settings. <br />
           Try setting a different battle type, or chose a different map.
         </div>
         <div v-else class="flex-1"></div>
