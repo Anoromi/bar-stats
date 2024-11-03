@@ -11,16 +11,22 @@ import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 import { normalizeBattleTeamBoxes } from "./mainTeamBoxes";
 import { getMap } from "./map";
 import type { MapEntity } from "~/server/utils/database/schema";
-import { calculateWinrateOfFactions } from "./factionWinrate";
+import {
+  calculateFactionPreference,
+  calculateWinrateOfFactions as calculateFactionWinrate,
+} from "./factionWinrate";
 import { calculateTeamWinrate } from "./teamWinrate";
 import { clusterizePlayers } from "./clusterizePlayers";
 import type { LabeledPlayer } from "./labeledPlayers";
 import { max } from "../other/max";
 import { getBattles, type GetBattlesClientParams } from "./getBattles";
+import { calculatePositionPreference } from "./positionPreference";
 
 async function processBattleRequest(params: GetBattlesClientParams): Promise<{
   battles: BattleWithPlayers[];
+  factionPreference: Record<string, number>;
   factionWinrate: Record<string, number>;
+  positionPreference?: number[];
   teamWinrate?: Record<number, number>;
   clusteredData?: LabeledPlayer[];
   map?: MapEntity;
@@ -43,6 +49,8 @@ async function processBattleRequest(params: GetBattlesClientParams): Promise<{
       map: undefined,
       maxTeamCount: 0,
       factionWinrate: {},
+      factionPreference: {},
+      positionPreference: [],
     };
   }
 
@@ -72,13 +80,15 @@ function calculateTeamCount(battles: BattleWithPlayers[]): number {
 
 async function genericProcess(battles: BattleWithPlayers[]): Promise<{
   factionWinrate: Record<string, number>;
+  factionPreference: Record<string, number>;
   osToTime: ValueToTimeMapping;
   osDiffToTime: ValueToTimeMapping;
   minOs: ValueToTimeMapping;
   maxOs: ValueToTimeMapping;
 }> {
   return {
-    factionWinrate: calculateWinrateOfFactions(battles),
+    factionWinrate: calculateFactionWinrate(battles),
+    factionPreference: calculateFactionPreference(battles),
     osToTime: calculateAvgOsToTime(battles),
     osDiffToTime: calculateOsDiffToTime(battles),
     minOs: calculateMinOsToTime(battles),
@@ -88,6 +98,7 @@ async function genericProcess(battles: BattleWithPlayers[]): Promise<{
 
 async function processSpecificMap(battles: BattleWithPlayers[]): Promise<{
   teamWinrate: Record<number, number>;
+  positionPreference: number[];
   labeledPlayers: LabeledPlayer[];
   map?: MapDto;
   clusterCount?: number;
@@ -97,8 +108,17 @@ async function processSpecificMap(battles: BattleWithPlayers[]): Promise<{
     battles,
     map,
   );
+  const positionPreference = Array<number>(clusterCount);
+  for (let i = 0; i < positionPreference.length; i++) {
+    positionPreference[i] = calculatePositionPreference(
+      battles,
+      labeledPlayers,
+      i,
+    );
+  }
   return {
     teamWinrate: calculateTeamWinrate(battles),
+    positionPreference,
     labeledPlayers,
     map,
     clusterCount,
@@ -115,7 +135,9 @@ export type BattlesProcessorResponse = {
   data: {
     battles: BattleWithPlayers[];
     factionWinrate: Record<string, number>;
+    factionPreference: Record<string, number>;
     teamWinrate?: Record<number, number>;
+    positionPreference?: number[];
     labeledPlayers?: LabeledPlayer[];
     map?: MapEntity;
     clusterCount?: number;

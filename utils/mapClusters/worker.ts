@@ -58,7 +58,7 @@ async function processRequest(searchedLabels: number[]): Promise<{
     pointCount: count(clusterLabels, (_v, i) => {
       return searchedLabels.includes(clusterLabels![i]);
     }),
-    positionPreference: calculatePreference(searchedLabels),
+    positionPreference: calculatePositionPreference(searchedLabels),
     factionPreference: calculateFactionPreference(searchedLabels),
     factionWinrate: calculateFactionWinrate(searchedLabels),
     osToTime: calculateOsToTime(searchedLabels),
@@ -68,7 +68,7 @@ async function processRequest(searchedLabels: number[]): Promise<{
   };
 }
 
-function calculatePreference(searchedLabels: number[]) {
+function calculatePositionPreference(searchedLabels: number[]) {
   let avg = 0;
   let count = 0;
 
@@ -85,10 +85,10 @@ function calculatePreference(searchedLabels: number[]) {
       .filter((v) => v.battleTeamNumber === player.battleTeamNumber)
       .sort((a, b) => (a.skill ?? 0) - (b.skill ?? 0));
 
-    const position = sortedPlayers.findIndex((v) => v == player);
+    const position = sortedPlayers.findIndex((v) => v === player);
     if (position >= sortedPlayers.length / 2)
       avg += position - sortedPlayers.length / 2 + 1;
-    else if (position < sortedPlayers.length / 2)
+    else if (position < Math.floor(sortedPlayers.length / 2))
       avg -= sortedPlayers.length / 2 - position;
 
     count++;
