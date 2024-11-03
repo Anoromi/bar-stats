@@ -7,7 +7,6 @@ import type {
   BattlesProcessorResponse,
 } from "~/utils/battleProcessor/worker";
 import { toast } from "~/components/ui/toast";
-import Hint from "~/components/ui/hint/Hint.vue";
 
 const route = useRoute();
 
@@ -32,8 +31,7 @@ const formSchema = toTypedSchema(
       .default([]),
     map: z
       .string()
-      .optional()
-      .default(route.query.map as string),
+      .optional(),
     limit: z.enum(allowedDataLimits).default("500"),
     startDate: z.string().date().optional(),
     battleType: z.string().default("8v8"),
@@ -45,6 +43,10 @@ const formSchema = toTypedSchema(
 
 const form = useForm({
   validationSchema: formSchema,
+  initialValues: {
+  map: route.query.map as string,
+  battleType: route.query.battleType as string | undefined,
+  }
 });
 
 const { worker } = useWorkerServers().battleProcessorWorker;
@@ -89,6 +91,7 @@ function cleanForm() {
 <script lang="ts">
 export type GeneralPageQuery = {
   map: string;
+  battleType: string | null
 };
 </script>
 
