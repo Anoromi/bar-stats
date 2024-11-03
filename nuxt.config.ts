@@ -22,7 +22,7 @@ export default defineNuxtConfig({
     dirs: ["./composables"],
   },
   experimental: {
-    typedPages: true
+    typedPages: true,
   },
   components: [
     {
@@ -64,7 +64,7 @@ export default defineNuxtConfig({
       "GraphicComponent",
       "GeoComponent",
       "LegendComponent",
-      "ToolboxComponent"
+      "ToolboxComponent",
     ],
     //renderer: ['svg', 'canvas']
   },
@@ -95,11 +95,16 @@ export default defineNuxtConfig({
   },
   runtimeConfig: {
     NUXT_DB_URL: "http://127.0.0.1:8080",
-    NUXT_DB_AUTH_TOKEN: '',
+    NUXT_DB_AUTH_TOKEN: "",
+  },
+  routeRules: {
+    "/": { prerender: true },
+    "/general": { prerender: true },
+    "/blog": { isr: true },
   },
   content: {
     navigation: {
-      fields: ['author', 'publishedAt']
-    }
-  }
+      fields: ["author", "publishedAt"],
+    },
+  },
 });
