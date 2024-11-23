@@ -136,7 +136,7 @@ const options = computed<ECOption>(() => {
 
     geo: {
       map: props.map.name,
-      roam: false,
+      roam: !showInFull.value,
       left: "24px",
       right: "24px",
       top: "24px",
@@ -187,18 +187,20 @@ const options = computed<ECOption>(() => {
             borderWidth: 1,
           },
           z: 20,
-          zlevel: 2,
+          zlevel: 10,
         } satisfies ScatterSeriesOption;
       }),
 
       ...labels.value.map((label, i) => {
-        const points = label[1].map(([playerIndex, battleIndex]) => {
-          const player = props.battles[battleIndex].values[playerIndex];
-          return [
-            player.startPosX!,
-            player.startPosZ!,
-          ] as const satisfies unknown[];
-        });
+        const points = label[1]
+          .map(([playerIndex, battleIndex]) => {
+            const player = props.battles[battleIndex].values[playerIndex];
+            return [
+              player.startPosX!,
+              player.startPosZ!,
+            ] as const satisfies unknown[];
+          })
+          .slice(0, 100);
         return {
           type: "scatter",
           color: labelColors.value[i][0],
@@ -208,13 +210,16 @@ const options = computed<ECOption>(() => {
           tooltip: {
             show: false,
           },
+          select: {
+            disabled: true,
+          },
           itemStyle: {
             borderType: "solid",
             borderColor: "#000",
             borderWidth: 0.5,
           },
           z: 10,
-          zlevel: 2,
+          zlevel: 0,
         } satisfies ScatterSeriesOption;
       }),
     ],
@@ -222,6 +227,22 @@ const options = computed<ECOption>(() => {
 });
 
 const chartRef = useTemplateRef<InstanceType<typeof VChart>>("chart-ref");
+
+const showInFull = ref(false);
+
+watchEffect((dispose) => {
+  if (import.meta.client) {
+    const query = window.matchMedia("(min-width: 600px)");
+    const listener = (result: MediaQueryListEvent) => {
+      showInFull.value = result.matches;
+    };
+    showInFull.value = query.matches;
+    query.addEventListener("change", listener);
+    dispose(() => {
+      query.removeEventListener("change", listener);
+    });
+  }
+});
 
 const selectedColors = ref<
   {
@@ -305,7 +326,14 @@ function updateSelectedColors(event: SelectChangedPayload) {
           height: 500 / mapAspectRatio,
           width: 500,
         }"
-        class="w-[500px] shrink-0 rounded-xl bg-surface outline outline-1 outline-foreground/30"
+        :class="
+          cn(
+            'w-full shrink-0 overflow-clip rounded-xl bg-surface outline outline-1 outline-foreground/30',
+            {
+              'w-[500px]': showInFull,
+            },
+          )
+        "
         @selectchanged="updateSelectedColors"
       />
       <div class="flex flex-col">
