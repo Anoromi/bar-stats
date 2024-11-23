@@ -11,17 +11,21 @@ export function useClientWorker<Request, Response>(
   );
 
   if (isClient) {
-    //console.log('rerunning')
     if (worker.value === null) {
       worker.value = new WorkerClient<Request, Response>(workerGenerator());
     }
   }
   const workerClient = computed(() => {
-    //if (worker.value === undefined) return undefined;
     return worker.value;
   });
 
+  function restart() {
+    worker.value?.dispose();
+    worker.value = new WorkerClient<Request, Response>(workerGenerator());
+  }
+
   return {
     worker: workerClient,
+    restart,
   };
 }

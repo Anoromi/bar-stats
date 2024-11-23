@@ -44,6 +44,14 @@ export class WorkerClient<Request, Response> {
     );
   }
 
+  dispose() {
+    this.worker.terminate()
+    for(const v of this.unfinishedRequests) {
+        v[1].reject(new InterruptedException())
+    }
+    this.unfinishedRequests.clear()
+  }
+
   private resolveRequest(event: MessageEvent<unknown>): void {
     const data = workerServerResponseSchema.parse(event.data);
     const request = this.unfinishedRequests.get(data.id);
