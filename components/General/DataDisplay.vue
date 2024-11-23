@@ -3,9 +3,10 @@ import type { BattlesProcessorResponse } from "~/utils/battleProcessor/worker";
 import Hint from "../ui/hint/Hint.vue";
 
 defineProps<{ results: BattlesProcessorResponse & { type: "battle" } }>();
+
 </script>
 <template>
-  <div class="flex w-full flex-col gap-y-8 py-10 xl:pl-20">
+  <div class="flex w-full flex-col gap-y-8 py-10 xl:pl-8 xl:ml-96">
     <b class="block text-xl">
       Found {{ results.data.battles.length }} battles
     </b>
