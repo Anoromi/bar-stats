@@ -94,7 +94,7 @@ export default defineNuxtConfig({
   },
   routeRules: {
     "/": { prerender: true },
-    "/general": { prerender: true },
+    "/stats": { prerender: true },
     "/blog": { isr: true },
   },
   content: {

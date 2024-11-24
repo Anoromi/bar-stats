@@ -46,8 +46,8 @@ useEChartThemes();
             <GithubLogoIcon />
           </NuxtLink>
         </Button>
-        <NuxtLink class="ml-2 text-lg font-bold text-primary" to="/general">
-          Overview
+        <NuxtLink class="ml-2 text-lg font-bold text-primary" to="/stats">
+          Stats
         </NuxtLink>
         <NuxtLink class="ml-2 text-lg font-bold text-primary" to="/blog">
           Blog
@@ -88,9 +88,9 @@ useEChartThemes();
             <li>
               <NuxtLink
                 class="ml-2 text-lg font-bold text-primary"
-                to="/general"
+                to="/stats"
               >
-                Overview
+                Stats
               </NuxtLink>
             </li>
             <li>

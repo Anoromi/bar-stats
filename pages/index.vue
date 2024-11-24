@@ -4,7 +4,7 @@ import { MagnifyingGlassIcon } from "@radix-icons/vue";
 import type { GetMapSuggestionQuery } from "~/server/api/map-suggestion";
 import { debouncedRef } from "@vueuse/core";
 import { generateURLParams } from "~/utils/battleProcessor/generateParams";
-import type { GeneralPageQuery } from "./general/index.vue";
+import type { GeneralPageQuery } from "./search/index.vue";
 import { cn } from "~/lib/utils";
 import {
   ComboboxContent,
@@ -60,7 +60,7 @@ const trimmedSuggestions = computed(() => {
 
 function mapSelected(query: { map: string; battleType: string | null }) {
   navigateTo(
-    "./general?" +
+    "./stats?" +
     generateURLParams<GeneralPageQuery>(
       ["map", query.map],
       ["battleType", query.battleType],
