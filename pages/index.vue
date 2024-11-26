@@ -4,7 +4,6 @@ import { MagnifyingGlassIcon } from "@radix-icons/vue";
 import type { GetMapSuggestionQuery } from "~/server/api/map-suggestion";
 import { debouncedRef } from "@vueuse/core";
 import { generateURLParams } from "~/utils/battleProcessor/generateParams";
-import type { GeneralPageQuery } from "./search/index.vue";
 import { cn } from "~/lib/utils";
 import {
   ComboboxContent,
@@ -15,6 +14,7 @@ import {
   ComboboxRoot,
   ComboboxViewport,
 } from "radix-vue";
+import type { GeneralPageQuery } from "./stats/index.vue";
 
 definePageMeta({
   layout: "default",

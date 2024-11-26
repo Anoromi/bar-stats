@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { BattlesProcessorRequest } from "~/utils/battleProcessor/worker";
 import Button from "../ui/button/Button.vue";
 import { generateURLParams } from "~/utils/battleProcessor/generateParams";
 import type { GeneralPageQuery } from "~/pages/stats/index.vue";
 import { useToast } from "../ui/toast";
+import type { GeneralFormData } from "~/utils/general/formSchema";
 
 const props = defineProps<{
-  searchParams: BattlesProcessorRequest;
+  searchParams: GeneralFormData;
 }>();
 
 const { toast } = useToast();

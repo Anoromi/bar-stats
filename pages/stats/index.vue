@@ -64,7 +64,7 @@ async function onSubmit(data: GeneralFormData): Promise<void> {
 
 onMounted(() => {
   if (route.query.preload !== undefined) {
-    onSubmit(initialData as unknown as GeneralFormData)
+    onSubmit(initialData as unknown as GeneralFormData);
     router.replace({
       path: "/stats",
       query: {

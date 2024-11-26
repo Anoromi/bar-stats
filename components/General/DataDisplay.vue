@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import type {
-  BattlesProcessorRequest,
-  BattlesProcessorResponse,
-} from "~/utils/battleProcessor/worker";
+import type { BattlesProcessorResponse } from "~/utils/battleProcessor/worker";
 import Hint from "../ui/hint/Hint.vue";
+import type { GeneralFormData } from "~/utils/general/formSchema";
 
 defineProps<{
   results: BattlesProcessorResponse & { type: "battle" };
-  searchParams: BattlesProcessorRequest;
+  searchParams: GeneralFormData;
 }>();
 </script>
 <template>
