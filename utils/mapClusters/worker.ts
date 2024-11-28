@@ -183,7 +183,7 @@ function calculateOsTeamToTime(searchedLabels: number[]): {
   const sortedOs = calculateParamToTime(
     filteredBattles,
     ({ playerIndexes }) => {
-      const team0Sum = sumArray(
+      const blueTeamSum = sumArray(
         playerIndexes.map((v) => {
           const player = getPlayer(v);
           if (player.battleTeamNumber === 0) {
@@ -193,7 +193,7 @@ function calculateOsTeamToTime(searchedLabels: number[]): {
           }
         }),
       );
-      const team1Sum = sumArray(
+      const redTeamSum = sumArray(
         playerIndexes.map((v) => {
           const player = getPlayer(v);
           if (player.battleTeamNumber === 1) {
@@ -203,7 +203,7 @@ function calculateOsTeamToTime(searchedLabels: number[]): {
           }
         }),
       );
-      return team0Sum - team1Sum;
+      return blueTeamSum - redTeamSum;
     },
     ({ battle }) => {
       return battle.key.durationMs / 1000 / 60;
