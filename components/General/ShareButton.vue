@@ -25,7 +25,7 @@ function copy() {
       ),
   );
   toast({
-    title: "Copied",
+    title: "Copied!",
   });
 }
 </script>

@@ -380,7 +380,7 @@ function updateSelectedColors(event: SelectChangedPayload) {
         <TabsList>
           <TabsTrigger value="winrate"> Winrates </TabsTrigger>
           <TabsTrigger value="combined os"> Combined os </TabsTrigger>
-          <TabsTrigger value="team os"> Team os </TabsTrigger>
+          <TabsTrigger value="team os"> Red - Blue os </TabsTrigger>
         </TabsList>
         <TabsContent value="winrate" class="w-full">
           <GeneralWinrateChart
@@ -446,11 +446,11 @@ function updateSelectedColors(event: SelectChangedPayload) {
               <Hint class="sm:w-96">
                 This chart reflects on how summed up os of players in teams
                 corresponds to battle time. <br />
-                <b>For example,</b> for 2 players from red team (player1,
-                player2) and 2 players (player3, player4) from blue in a battle
+                <b>For example,</b> for 2 players from red team (red,
+                orange) and 2 players (blue, green) from blue team in a battle
                 we will get formula
                 <blockquote class="text-foreground-variant">
-                  (player1_os + player2_os) - (player3_os + player4_os)
+                  (red + orange) - (blue + green)
                 </blockquote>
               </Hint>
             </template>
@@ -469,8 +469,8 @@ function updateSelectedColors(event: SelectChangedPayload) {
                 <b>For example,</b> for 4 players from 2 teams in a battle we
                 will get formula
                 <blockquote class="text-foreground-variant">
-                  ((player1_os - average_os) + (player2_os - average_os)) -
-                  ((player3_os - average_os) + (player4_os - average_os))
+                  ((red - average_os) + (player2_os - average_os)) -
+                  ((blue - average_os) + (player4_os - average_os))
                 </blockquote>
               </Hint>
             </template>
