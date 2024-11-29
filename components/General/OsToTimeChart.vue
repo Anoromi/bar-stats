@@ -33,7 +33,7 @@ const allowedMovingAverages = [
 ] as const;
 
 const movingAverageType =
-  ref<(typeof allowedMovingAverages)[number]["key"]>("sma");
+  ref<(typeof allowedMovingAverages)[number]["key"]>("ema");
 
 function translateAverageOption(
   value: (typeof allowedMovingAverages)[number]["key"],
