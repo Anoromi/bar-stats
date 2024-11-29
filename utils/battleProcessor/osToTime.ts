@@ -95,7 +95,7 @@ export function calculateParamToTime<T, V = unknown>(
   extractValue: (a: T) => number | null,
   extractTime: (a: T) => number,
   extractExtraValue?: (a: T) => V,
-): unknown {
+): ValueToTimeMapping | ValueToTimeMappingWithExtra<V> {
   const sortedBattles = [...values].sort((a, b) => {
     const va = extractValue(a);
     const vb = extractValue(b);
