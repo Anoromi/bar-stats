@@ -73,16 +73,16 @@ export default defineNuxtConfig({
       //},
     },
 
-    plugins: [
-      wasm(),
-      topLevelAwait({
-        promiseExportName: "__tla",
-        promiseImportName: (i) => `__tla_${i}`,
-      }),
-    ],
+    // plugins: [
+    //   wasm(),
+    //   topLevelAwait({
+    //     promiseExportName: "__tla",
+    //     promiseImportName: (i) => `__tla_${i}`,
+    //   }),
+    // ],
     worker: {
       format: "es",
-      plugins: () => [wasm(), topLevelAwait()],
+      // plugins: () => [wasm(), topLevelAwait()],
     },
     optimizeDeps: {
       exclude: ["vee-validate"],
