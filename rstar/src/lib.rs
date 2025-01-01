@@ -1,6 +1,8 @@
 pub mod clusterize;
 mod utils;
 pub mod moving_average;
+pub mod spatial_index;
+mod total_f32;
 
 use core::panic;
 use std::fmt::Debug;
