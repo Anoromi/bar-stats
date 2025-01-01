@@ -1,3 +1,5 @@
+import { getWasmLib } from "../wasm/getWasmLib";
+
 const NOISE_LABEL = 0;
 
 export async function densityClusterize<Point>(
@@ -10,18 +12,25 @@ export async function densityClusterize<Point>(
   data: number[];
   clusterCount: number;
 }> {
-  const { clusterize_with_limit, BarPartialPlayerData } = await import(
-    "~/rstar/pkg/bar_stats_wasm"
-  );
+  const wasmLib = await getWasmLib()
 
   const transformedPoints = data.map((v) => {
     const point = pointExtract(v);
-    return new BarPartialPlayerData(point.battleIndex, point.x, point.y);
+    return new wasmLib.BarPartialPlayerData(
+      point.battleIndex,
+      point.x,
+      point.y,
+    );
   });
 
   // TODO add max clusterization limit
-  const clusters = clusterize_with_limit(transformedPoints, eps, minPts, 10000, clusterSizeThreshold);
-
+  const clusters = wasmLib.clusterize_with_limit(
+    transformedPoints,
+    eps,
+    minPts,
+    10000,
+    clusterSizeThreshold,
+  );
   const result = {
     data: Array.from(clusters.labels),
     clusterCount: clusters.cluster_count,

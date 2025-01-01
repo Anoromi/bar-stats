@@ -1,6 +1,7 @@
 import type { BattleWithPlayers } from "~/server/utils/services/battleService";
 import { FixedRingBuffer } from "../other/ringBuffer";
 import type { MovingAverageOptions } from "~/rstar/pkg/bar_stats_wasm";
+import { getWasmLib } from "../wasm/getWasmLib";
 
 export type ValueToTimeMapping = {
   values: Float64Array;
@@ -121,11 +122,11 @@ export function calculateParamToTime<T, V = unknown>(
     }
   }
 
-  if(extraArr === null)
-  return {
-    values: valueArr,
-    times: timeArr,
-  };
+  if (extraArr === null)
+    return {
+      values: valueArr,
+      times: timeArr,
+    };
   return {
     values: valueArr,
     times: timeArr,
@@ -139,7 +140,7 @@ export async function smoothValues(
   meanSize: number,
   smoothingOption: MovingAverageOptions,
 ) {
-  const { moving_average } = await import("~/rstar/pkg/bar_stats_wasm");
+  const { moving_average } = await getWasmLib()
   const smoothedTimeArr = moving_average(timeArr, meanSize, smoothingOption);
   //const smoothedTimeArr = movingMedian(timeArr, meanSize);
   //console.log("smoothed", smoothedTimeArr);
