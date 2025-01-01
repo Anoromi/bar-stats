@@ -9,9 +9,16 @@ crate-type = ["cdylib", "rlib"]
 
 [features]
 default = ["console_error_panic_hook"]
+bounding_box = []
+clusterize = []
+
 
 [dependencies]
-wasm-bindgen = "0.2.84"
+wasm-bindgen = "0.2.92"
+rayon = "1.8"
+wasm-bindgen-rayon = "1.2"
+
+# wasm-bindgen = "0.2.84"
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
 # logging them with `console.error`. This is great for development, but requires
