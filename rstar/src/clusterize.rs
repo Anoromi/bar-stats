@@ -3,7 +3,8 @@ use std::convert::{TryFrom, TryInto};
 use wasm_bindgen::prelude::wasm_bindgen;
 
 use crate::{
-    log, log_dbg, spatial_index::{BoxMap, EpsRTree, SpatialIndex}
+    log, log_dbg,
+    spatial_index::{BoxMap, EpsRTree, SpatialIndex},
 };
 
 struct IndexedPoint {
@@ -88,7 +89,6 @@ fn db_clusterize(
 ) -> DepthClusterizationResults {
     fn range_query<'a>(
         spatial_index: &impl SpatialIndex<Data = BarPlayerData>,
-        // rtree: &RTree<GeomWithData<[f32; 2], BarPlayerData>>,
         x: f32,
         y: f32,
         index: usize,
@@ -98,10 +98,6 @@ fn db_clusterize(
             .into_iter()
             .map(|v| v.1.index)
             .filter(move |v| *v != index);
-        // return spatial_index
-        //     .locate_within_distance([x, y], eps * eps)
-        //     .map(|v| v.data.index)
-        //     .filter(move |v| *v != index);
     }
 
     let default_value = u32::MAX;
@@ -144,12 +140,8 @@ fn db_clusterize(
 
             let q_neighbours = &mut auxiliary_vector;
 
-            //q_neighbours.
             if q_neighbours.len() + 1 >= min_pts.try_into().unwrap() {
                 seeds.extend(q_neighbours.iter().filter(|v| labels[**v] != default_value));
-                // for qn in q_neighbours.iter().filter(|v| labels[**v] > 0) {
-                //     seeds.push(*qn);
-                // }
             }
             j += 1;
             auxiliary_vector.clear();
@@ -157,7 +149,6 @@ fn db_clusterize(
     }
     return DepthClusterizationResults {
         labels,
-        //labels: labels.into_iter().map(|v| v.try_into().unwrap()).collect(),
         cluster_count: label_count.try_into().unwrap(),
     };
 }
@@ -170,6 +161,8 @@ pub fn clusterize_with_limit(
     _max_pts: u32,
     cluster_size_factor_threshold: u32,
 ) -> DepthClusterizationResults {
+    
+
     let player_data = data
         .iter()
         .enumerate()
@@ -186,14 +179,13 @@ pub fn clusterize_with_limit(
     // let rtree: RTree<GeomWithData<[f32; 2], BarPlayerData>> = RTree::bulk_load(player_data);
     //
     // let spatial_index = EpsRTree(rtree, eps);
-    
+
     let spatial_index = BoxMap::from_geom_with_data(player_data, eps);
 
     let DepthClusterizationResults {
         mut labels,
         cluster_count,
     } = db_clusterize(&spatial_index, data, eps, min_pts);
-
 
     let mut label_point_counts = vec![0u32; cluster_count.try_into().unwrap()];
 
@@ -248,7 +240,7 @@ mod tests {
             BarPartialPlayerData::new(0, 11.0, 11.0),
             BarPartialPlayerData::new(0, 11.0, 12.0),
         ];
-        
+
         let result = clusterize_with_limit(data, 5.0, 2, 1000, 1);
         assert_eq!(result.cluster_count, 4);
     }

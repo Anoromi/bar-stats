@@ -37,10 +37,6 @@ async function requestBattles(params: GetBattlesClientParams) {
     },
   )
     .then(async (v) => (await v.json()) as BattleWithPlayers[])
-    .then((v) => {
-      console.log("received battles", v);
-      return v;
-    });
   return battles;
 }
 

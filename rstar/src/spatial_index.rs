@@ -18,6 +18,8 @@ pub trait SpatialIndex {
     }
 
     fn find_adjacent_iter(&self, point: Point2d) -> impl Iterator<Item = (Point2d, Self::Data)>;
+
+    // fn expand_on_core_point(&self, )
 }
 
 pub struct EpsRTree(pub RTree<GeomWithData<Point2d, BarPlayerData>>, pub f32);
